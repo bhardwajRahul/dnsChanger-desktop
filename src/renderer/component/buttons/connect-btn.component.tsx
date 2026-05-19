@@ -30,13 +30,9 @@ export function ConnectButtonComponent() {
 				serversStateContext.setCurrentActive(null)
 				window.ipc.notif(response.message)
 			} else {
-				if (response.message == 'wmic_not_available') {
-					const event = new Event('wmic-helper-modal')
-					window.dispatchEvent(event)
-				} else {
-					window.ipc.dialogError('Error', response.message)
-				}
+				window.ipc.dialogError('Error', response.message)
 			}
+
 		} else if (step == statusStep.DISCONNECT) {
 			// req connect
 			const response = await window.ipc.setDns(serversStateContext.selected)
@@ -50,13 +46,9 @@ export function ConnectButtonComponent() {
 					value: 1,
 				})
 			} else {
-				if (response.message == 'wmic_not_available') {
-					const event = new Event('wmic-helper-modal')
-					window.dispatchEvent(event)
-				} else {
-					window.ipc.dialogError('Error', response.message)
-				}
+				window.ipc.dialogError('Error', response.message)
 			}
+
 		}
 
 		setLoading(false)

@@ -1,6 +1,6 @@
 import { WindowsPlatform } from '../windows.platform'
 import { Interface } from '../interfaces/interface'
-import sudo from 'sudo-prompt'
+import * as sudo from 'sudo-prompt'
 
 describe('WinPlatform()', () => {
 	let windowsPlatform: WindowsPlatform
@@ -35,6 +35,19 @@ describe('WinPlatform()', () => {
 			.mockImplementation(() => '')
 
 		expect(windowsPlatform.getActiveDns()).resolves.toBe(currentServer)
+	})
+
+	describe('getInterfacesList', () => {
+		it('should return a list of interfaces including Wi-Fi', async () => {
+			const interfaces = await windowsPlatform.getInterfacesList()
+			expect(Array.isArray(interfaces)).toBe(true)
+			expect(interfaces.length).toBeGreaterThan(0)
+			
+			// On this machine we know there is a Wi-Fi interface
+			const wifi = interfaces.find(i => i.name === 'Wi-Fi')
+			expect(wifi).toBeDefined()
+			expect(wifi.type).toBe('Wireless')
+		})
 	})
 
 	describe('SetDns', () => {
