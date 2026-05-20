@@ -1,5 +1,8 @@
 # Changelog
 
+# v2.3.6
+- removed wmic - fixed [#123](https://github.com/DnsChanger/dnsChanger-desktop/issues/123)
+
 # v2.3.5
 - feat: add shutdown scheduling functionality with IPC integration
 - refactor: use sass instead of node-sass by @brutalchrist in https://github.com/DnsChanger/dnsChanger-desktop/pull/129
