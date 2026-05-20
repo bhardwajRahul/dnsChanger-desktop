@@ -1,5 +1,6 @@
-import network from 'network'
-import sudo from 'sudo-prompt'
+import * as os from 'node:os'
+import { exec } from 'node:child_process'
+import * as sudo from 'sudo-prompt'
 
 import { store } from '../../store/store'
 import { Platform } from '../platform'
@@ -47,11 +48,59 @@ export class WindowsPlatform extends Platform {
 		}
 	}
 
-	getInterfacesList(): Promise<Interface[]> {
-		return new Promise((resolve, reject) => {
-			network.get_interfaces_list((err: unknown, obj: unknown) => {
-				if (err) reject(err)
-				else resolve(obj as Interface[])
+	async getInterfacesList(): Promise<Interface[]> {
+		const interfaces = os.networkInterfaces()
+		const list: Interface[] = []
+
+		for (const [name, addrs] of Object.entries(interfaces)) {
+			const ipv4 = addrs.find((a) => a.family === 'IPv4' && !a.internal)
+			if (ipv4) {
+				list.push({
+					name: name,
+					mac_address: ipv4.mac,
+					ip_address: ipv4.address,
+					netmask: ipv4.netmask,
+					type: name.toLowerCase().includes('wi-fi') ? 'Wireless' : 'Wired',
+					vendor: 'Unknown',
+					model: 'Unknown',
+					gateway_ip: null,
+				})
+			}
+		}
+
+		try {
+			const gatewayInfo = await this.getGateways()
+			for (const inter of list) {
+				inter.gateway_ip = gatewayInfo[inter.name] || null
+			}
+		} catch (e) {
+			// fallback if netsh fails
+		}
+
+		return list
+	}
+
+	private getGateways(): Promise<Record<string, string>> {
+		return new Promise((resolve) => {
+			exec('netsh interface ip show config', (error, stdout) => {
+				if (error) {
+					resolve({})
+					return
+				}
+
+				const gateways: Record<string, string> = {}
+				const sections = stdout.split(/\r?\n\r?\n/)
+				for (const section of sections) {
+					const nameMatch = section.match(/Configuration for interface "(.+)"/)
+					if (nameMatch) {
+						const name = nameMatch[1]
+						const gatewayMatch = section.match(/[Gg]ateway.*:\s+([\d.]+)/)
+						if (gatewayMatch) {
+							gateways[name] = gatewayMatch[1]
+						}
+					}
+				}
+				resolve(gateways)
 			})
 		})
 	}
@@ -72,28 +121,6 @@ export class WindowsPlatform extends Platform {
 		} catch (e) {
 			throw e
 		}
-	}
-
-	async isWmicAvailable(): Promise<boolean> {
-		return new Promise((resolve) => {
-			sudo.exec(
-				'wmic os get caption',
-				{
-					name: 'DnsChanger',
-				},
-				(error, stdout, stderr) => {
-					if (error || stderr) {
-						console.log('WMIC is not installed or not recognized')
-						console.log('Error:', error?.message || stderr)
-						resolve(false)
-						return
-					}
-
-					console.log('WMIC is available')
-					resolve(true)
-				},
-			)
-		})
 	}
 
 	private async getValidateInterface() {

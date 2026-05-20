@@ -34,13 +34,6 @@ export function NetworkOptionsModalComponent(props: Props) {
 		const fetchNetworkInterfaces = async () => {
 			try {
 				const interfaces = await window.os.getInterfaces()
-				if ('success' in interfaces) {
-					props.setIsOpen(false)
-					const event = new Event('wmic-helper-modal')
-					window.dispatchEvent(event)
-					return
-				}
-
 				const networks = interfaces.map((d) => d.name)
 				networks.unshift('Auto')
 				setNetworkAdapters(networks)

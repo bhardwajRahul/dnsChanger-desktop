@@ -18,17 +18,6 @@ import { store } from '../store/store'
 
 ipcMain.handle(EventsKeys.SET_DNS, async (event, server: Server) => {
 	try {
-		if (isWindows()) {
-			const winPlatform = new WindowsPlatform()
-			const isAvailableWmic = await winPlatform.isWmicAvailable()
-			if (!isAvailableWmic) {
-				return {
-					server,
-					success: false,
-					message: 'wmic_not_available',
-				}
-			}
-		}
 
 		await dnsService.setDns(server.servers)
 		const currentLng = LN[getCurrentLng()]
@@ -55,17 +44,6 @@ ipcMain.handle(EventsKeys.SET_DNS, async (event, server: Server) => {
 
 ipcMain.handle(EventsKeys.CLEAR_DNS, async (event, server: Server) => {
 	try {
-		if (isWindows()) {
-			const winPlatform = new WindowsPlatform()
-			const isAvailableWmic = await winPlatform.isWmicAvailable()
-			if (!isAvailableWmic) {
-				return {
-					server,
-					success: false,
-					message: 'wmic_not_available',
-				}
-			}
-		}
 
 		await dnsService.clearDns()
 
@@ -251,17 +229,6 @@ ipcMain.handle(EventsKeys.TOGGLE_PIN, async (event, server: Server) => {
 })
 
 ipcMain.handle(EventsKeys.GET_NETWORK_INTERFACE_LIST, async () => {
-	if (isWindows()) {
-		const winPlatform = new WindowsPlatform()
-		const isAvailableWmic = await winPlatform.isWmicAvailable()
-		if (!isAvailableWmic) {
-			return {
-				success: false,
-				message: 'wmic_not_available',
-			}
-		}
-	}
-
 	return dnsService.getInterfacesList()
 })
 
