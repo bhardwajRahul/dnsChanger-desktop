@@ -1,4 +1,5 @@
 import type React from 'react'
+import { IoReload } from 'react-icons/io5'
 
 interface ButtonProps {
 	onClick?: () => void
@@ -37,8 +38,8 @@ export function Button(prop: ButtonProps) {
 			{prop.loading
 				? prop.loadingText || (
 						<div className="flex items-center gap-1">
-							{/* <Icon name="spinner" className="animate-spin" /> */}
-							<span className="text-xs">wait...</span>
+							<IoReload size={18} className="animate-spin" />
+							{/* <span className="text-xs">wait...</span> */}
 						</div>
 					)
 				: prop.children}

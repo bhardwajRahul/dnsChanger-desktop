@@ -349,7 +349,7 @@ function InputDNS(index: number, className: string, onChange: any) {
 			<input
 				key={index}
 				type="text"
-				className={`${className} w-10 h-10 border-none rounded font-[Inter] outline outline-1 outline-gray-700/20  dark:outline-none dark:text-gray-300/95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 text-center`}
+				className={`${className} input w-10 p-0! h-10 rounded-xl font-[Inter] outline-none! transition-all duration-300 focus:ring-1 focus:ring-primary/20 focus:border-primary text-center`}
 				maxLength={3}
 				onChange={onChange}
 			/>

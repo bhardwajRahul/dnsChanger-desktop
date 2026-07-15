@@ -73,7 +73,7 @@ export function NetworkOptionsModalComponent(props: Props) {
 						onChange={(value) =>
 							setNetworkInterfaceInterface(value.target.value)
 						}
-						className="px-2 select"
+						className="border cursor-pointer select rounded-xl bg-base-200 border-base-300 outline-primary/30"
 					>
 						{networkAdapters.map((item) => (
 							<option value={item} selected={item === network} key={item}>

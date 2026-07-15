@@ -44,7 +44,7 @@ export function AdvertisementCardComponent() {
 		return (
 			<div
 				className={
-					'p-2bg-base-200 rounded-2xl shadow-sm h-17.5  flex items-center justify-center'
+					'p-2 bg-base-200 rounded-2xl h-17.5  flex items-center justify-center'
 				}
 			>
 				<div className="flex flex-row items-center gap-2">

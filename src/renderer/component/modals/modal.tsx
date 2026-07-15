@@ -15,31 +15,11 @@ type ModalProps = {
 }
 
 const sizeClasses = {
-	sm: {
-		w: 'w-[calc(100vw-2rem)] max-w-sm',
-		h: 'max-h-[calc(100vh-4rem)] md:max-h-[560px]',
-		minH: 'min-h-[180px]',
-	},
-	md: {
-		w: 'w-[calc(100vw-2rem)] max-w-md',
-		h: 'max-h-[calc(100vh-4rem)] md:max-h-[640px]',
-		minH: 'min-h-[200px]',
-	},
-	lg: {
-		w: 'w-[calc(100vw-2rem)] max-w-lg',
-		h: 'max-h-[calc(100vh-4rem)] md:max-h-[720px]',
-		minH: 'min-h-[240px]',
-	},
-	xl: {
-		w: 'w-[calc(100vw-2rem)] max-w-4xl',
-		h: 'max-h-[calc(100vh-4rem)] md:max-h-[800px]',
-		minH: 'min-h-[280px]',
-	},
-	full: {
-		w: 'w-[calc(100vw-1rem)] max-w-5xl',
-		h: 'h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)]',
-		minH: 'min-h-[calc(100vh-4rem)]',
-	},
+	sm: 'max-w-sm max-h-[80vh]',
+	md: 'max-w-md max-h-[80vh]',
+	lg: 'max-w-lg max-h-[80vh]',
+	xl: 'max-w-4xl max-h-[80vh]',
+	full: 'max-w-[95vw] max-h-[95vh]',
 } as const
 
 export default function Modal({
@@ -53,78 +33,60 @@ export default function Modal({
 	showCloseButton = true,
 	className = '',
 }: ModalProps) {
-	const modalRef = useRef<HTMLDivElement>(null)
-	const sizeValue = sizeClasses[size] || sizeClasses.md
+	const dialogRef = useRef<HTMLDialogElement>(null)
 
-	// Lock body scroll when modal is open
 	useEffect(() => {
 		if (isOpen) {
-			document.documentElement.classList.add('modal-isActive')
-			document.body.style.overflow = 'hidden'
+			dialogRef.current?.showModal()
 		} else {
-			document.documentElement.classList.remove('modal-isActive')
-			document.body.style.overflow = ''
-		}
-		return () => {
-			document.documentElement.classList.remove('modal-isActive')
-			document.body.style.overflow = ''
+			dialogRef.current?.close()
 		}
 	}, [isOpen])
 
-	// Handle keyboard events
-	useEffect(() => {
-		if (!isOpen) return
-
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				e.preventDefault()
-				onClose()
-			}
+	const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+		if (!closeOnBackdropClick) return
+		const rect = dialogRef.current?.getBoundingClientRect()
+		if (!rect) return
+		const isClickOutside =
+			e.clientX < rect.left ||
+			e.clientX > rect.right ||
+			e.clientY < rect.top ||
+			e.clientY > rect.bottom
+		if (isClickOutside) {
+			onClose()
 		}
+	}
 
-		document.addEventListener('keydown', handleKeyDown)
-		return () => document.removeEventListener('keydown', handleKeyDown)
-	}, [isOpen, onClose])
+	const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
+		e.preventDefault()
+		onClose()
+	}
 
-	// Focus management
-	useEffect(() => {
-		if (isOpen && modalRef.current) {
-			const focusableElements = modalRef.current.querySelectorAll(
-				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-			)
-			const firstElement = focusableElements[0] as HTMLElement
-			firstElement?.focus()
-		}
-	}, [isOpen])
-
-	const modalBoxClasses = `
-		modal-box overflow-hidden rounded-xl md:rounded-2xl p-3 md:p-4 shadow-xl transition-all duration-200
-		${sizeValue.w} ${sizeValue.minH} ${size === 'full' ? sizeValue.h : ''} ${className}
-	`
-
-	if (!isOpen) return null
+	const sizeClass = sizeClasses[size] || sizeClasses.md
 
 	return createPortal(
 		<dialog
-			open={isOpen}
+			ref={dialogRef}
 			dir={direction}
-			aria-labelledby={typeof title === 'string' ? title : 'modal-title'}
-			aria-modal="true"
-			onClick={() => closeOnBackdropClick && onClose()}
-			className="flex items-center justify-center p-2 transition-opacity duration-200 opacity-100 modal modal-middle md:p-4"
+			onCancel={handleCancel}
+			onClick={handleBackdropClick}
+			className="modal"
 		>
 			<div
-				ref={modalRef}
-				onClick={(e) => e.stopPropagation()}
-				className={`${modalBoxClasses} animate-modal-in`}
+				className={`
+          modal-box 
+          rounded-xl md:rounded-2xl 
+          p-3 md:p-4 
+          shadow-xl 
+          overflow-hidden
+          ${sizeClass}
+          ${className}
+        `}
 			>
 				{(title || showCloseButton) && (
 					<div className="flex items-center justify-between gap-2 mb-2 md:mb-3 md:gap-4">
 						{title && (
-							<h3
-								id="modal-title"
-								className="text-base font-semibold md:text-lg"
-							>
+							<h3 className="text-base font-semibold md:text-lg">
 								{title}
 							</h3>
 						)}
@@ -132,16 +94,20 @@ export default function Modal({
 							<button
 								type="button"
 								onClick={onClose}
-								className="flex items-center justify-center transition-all rounded-full cursor-pointer w-7 h-7 md:w-8 md:h-8 bg-base-300 text-muted hover:bg-base-content/10 hover:scale-105 active:scale-95 shrink-0 outline-0! border-0!"
+								className="min-h-0 p-0 rounded-full  btn btn-sm btn-ghost w-7 h-7 md:w-8 md:h-8 text-base-content/60 hover:text-base-content hover:bg-base-content/10"
 								aria-label="Close modal"
 							>
-								<IoClose />
+								<IoClose className="w-5 h-5" />
 							</button>
 						)}
 					</div>
 				)}
 				<div
-					className={`overflow-y-auto overflow-x-hidden ${size !== 'full' ? sizeValue.h : 'h-full'} pr-0.5 md:pr-1`}
+					className={`
+            overflow-y-auto overflow-x-hidden 
+            pr-0.5 md:pr-1
+            ${size !== 'full' ? 'max-h-[70vh]' : 'max-h-[85vh]'}
+          `}
 				>
 					{children}
 				</div>

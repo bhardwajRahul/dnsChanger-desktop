@@ -47,14 +47,14 @@ export function ConfirmationModal({
 	isOpen,
 	onClose,
 	onConfirm,
-	title = 'تأیید عملیات',
-	message = 'آیا از انجام این عملیات اطمینان دارید؟',
-	confirmText = 'تأیید',
-	cancelText = 'انصراف',
+	title = 'Confirm Operation',
+	message = 'Are you sure you want to perform this operation?',
+	confirmText = 'Confirm',
+	cancelText = 'Cancel',
 	variant = 'danger',
 	isLoading = false,
 	icon,
-	direction = 'rtl',
+	direction,
 }: ConfirmationModalProps) {
 	const config = variantConfig[variant]
 	const displayIcon = icon || config.icon
@@ -98,27 +98,26 @@ export function ConfirmationModal({
 
 				<div className="flex gap-3 pt-2">
 					<Button
-						onClick={handleConfirm}
-						size="md"
-						disabled={isLoading}
-						loading={isLoading}
-						loadingText={
-							<div className="flex items-center gap-1">
-								{/* <IconLoading className="!mx-0 !text-white" /> */}
-								<span className="text-xs">در حال انجام...</span>
-							</div>
-						}
-						className={`flex-1 ${config.confirmBg} ${config.confirmText} border-none rounded-2xl`}
-					>
-						{confirmText}
-					</Button>
-					<Button
 						onClick={handleCancel}
 						size="md"
 						disabled={isLoading}
 						className="flex-1 border border-content/20 text-content hover:bg-base-300/50 rounded-2xl"
 					>
 						{cancelText}
+					</Button>
+					<Button
+						onClick={handleConfirm}
+						size="md"
+						disabled={isLoading}
+						loading={isLoading}
+						loadingText={
+							<div className="flex items-center gap-1">
+								<span className="text-xs">Please wait ...</span>
+							</div>
+						}
+						className={`flex-1 ${config.confirmBg} ${config.confirmText} border-none rounded-2xl`}
+					>
+						{confirmText}
 					</Button>
 				</div>
 			</div>
