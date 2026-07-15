@@ -8,7 +8,6 @@ import {
 } from 'react-icons/io5'
 
 import { Server } from '../../shared/interfaces/server.interface'
-import { UrlsConstant } from '../../shared/constants/urls.constant'
 
 import { FiCopy } from 'react-icons/fi'
 import { CiCircleMore } from 'react-icons/ci'
@@ -16,36 +15,20 @@ import { FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { getPingIcon } from '../utils/icons.util'
 import { TextInput } from '../component/input/text-input'
 import { Button } from '../component/button/button'
-
-let STORED_SERVERS: Server[] = []
+import { useGetDnsList } from '../hook/fetch-dns'
 
 export function ExplorePage() {
-	const [loading, setLoading] = useState(true)
-
 	const [servers, setServers] = useState<Server[]>([])
 
 	const [installedServers, setInstalledServers] = useState<Server[]>([])
 
 	const [search, setSearch] = useState('')
-
-	async function requestHandler(url: string): Promise<Server[]> {
-		try {
-			const { data } = await axios.get<Server[]>(url)
-			return data
-		} catch {
-			return []
-		}
-	}
-
+	const { data: fetchedDnsList, refetch } = useGetDnsList()
+	const [isLoading, setIsLoading] = useState(true)
 	async function updateServers() {
-		let data = await requestHandler(UrlsConstant.STORE_SERVER)
-
-		if (!data.length) {
-			data = await requestHandler(UrlsConstant.STORE)
-		}
-
+		const list = fetchedDnsList || []
 		const result = await Promise.all(
-			data.map(async (server) => {
+			list.map(async (server) => {
 				const response = await window.ipc.ping(server)
 
 				server.ping = Number(response.data.time) || -1
@@ -56,15 +39,11 @@ export function ExplorePage() {
 
 		result.sort((a, b) => (a.ping === -1 ? 1 : b.ping === -1 ? -1 : a.ping - b.ping))
 
-		STORED_SERVERS = result
-
 		setServers(result)
 	}
 
-	async function fetchDnsList() {
+	async function fetchCurrentDnsList() {
 		try {
-			setLoading(true)
-
 			setServers([])
 
 			const response = await window.ipc.fetchDnsList()
@@ -73,13 +52,14 @@ export function ExplorePage() {
 
 			await updateServers()
 		} finally {
-			setLoading(false)
+			setIsLoading(false)
 		}
 	}
 
 	useEffect(() => {
-		fetchDnsList()
-	}, [])
+		if (fetchedDnsList?.length) fetchCurrentDnsList()
+		else if (isLoading) setIsLoading(false)
+	}, [fetchedDnsList])
 
 	const filteredServers = useMemo(() => {
 		if (!search.trim()) {
@@ -99,27 +79,23 @@ export function ExplorePage() {
 	return (
 		<div className="flex flex-col h-96">
 			<div className="px-5 py-2 border-b border-base-300">
-				<div className="flex items-center gap-3 ">
-					<div className="flex-1">
-						<label className="flex items-center gap-2 input input-bordered">
-							<IoSearch size={18} className="opacity-60" />
-
-							<TextInput
-								type="text"
-								className="grow"
-								placeholder="Search DNS..."
-								value={search}
-								onChange={(value) => setSearch(value)}
-								disabled={loading}
-							/>
-						</label>
+				<div className="flex items-center justify-between gap-3 ">
+					<div className="">
+						<TextInput
+							type="text"
+							className=""
+							placeholder="Search DNS..."
+							value={search}
+							onChange={(value) => setSearch(value)}
+							disabled={isLoading}
+						/>
 					</div>
 
 					<Button
 						size="sm"
-						className="btn-ghost"
-						loading={loading}
-						onClick={fetchDnsList}
+						className="btn-ghost rounded-xl"
+						loading={isLoading}
+						onClick={() => refetch()}
 					>
 						<IoReload size={18} />
 					</Button>
@@ -128,20 +104,20 @@ export function ExplorePage() {
 				<div className="flex items-center justify-between mt-3 text-sm text-base-content/60">
 					<span>{filteredServers.length} DNS Servers</span>
 
-					{search && <span>Filtered from {STORED_SERVERS.length}</span>}
+					{search && <span>Filtered from {fetchedDnsList?.length || 0}</span>}
 				</div>
 			</div>
 
 			<div className="flex-1 px-5 py-2 overflow-auto">
-				<div className="flex flex-col gap-1">
-					{loading &&
+				<div className="flex flex-col gap-1 pb-10">
+					{isLoading &&
 						Array.from({
 							length: 5,
 						}).map((_, index) => (
 							<div key={index} className="h-14 skeleton rounded-2xl " />
 						))}
 
-					{!loading && filteredServers.length === 0 && (
+					{!isLoading && filteredServers.length === 0 && (
 						<div className="py-10 text-center border rounded-2xl border-base-300 bg-base-200">
 							<h2 className="font-medium">No DNS Servers</h2>
 
@@ -151,7 +127,7 @@ export function ExplorePage() {
 						</div>
 					)}
 
-					{!loading &&
+					{!isLoading &&
 						filteredServers.map((server) => (
 							<ServerCard
 								key={server.key}
@@ -166,7 +142,6 @@ export function ExplorePage() {
 	)
 }
 
-// ===== Continue in Part 2 =====
 interface ServerCardProps {
 	server: Server
 	storeServers: Server[]

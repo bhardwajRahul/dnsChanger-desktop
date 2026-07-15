@@ -18,6 +18,7 @@ export let settingStore: SettingInStore = window.storePreload.get('settings')
 import ReactGA from 'react-ga4'
 import { NavbarComponent } from './component/head/navbar.component'
 import { AnimatePresence, motion } from 'framer-motion'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 interface Page {
 	key: string
@@ -37,7 +38,7 @@ const pages: Page[] = [
 	{ key: '/shutdown', element: <ShutdownPage />, icon: BsPower, name: 'Shutdown' },
 	{ key: '/setting', element: <SettingPage />, icon: TbSettings, name: 'Setting' },
 ]
-
+const queryClient = new QueryClient()
 export function App() {
 	const [wasLoaded, setWasLoaded] = useState(false)
 
@@ -93,7 +94,9 @@ export function App() {
 		<div className="h-96">
 			<TypesafeI18n locale={settingStore.lng}>
 				<NavbarComponent />
-				<PageWrapper>{currentPage.element}</PageWrapper>
+				<QueryClientProvider client={queryClient}>
+					<PageWrapper>{currentPage.element}</PageWrapper>
+				</QueryClientProvider>
 				<div
 					className="fixed bottom-0 left-0 right-0 flex items-center justify-around h-16 px-4 bg-base-100"
 					dir={settingStore.lng === 'fa' ? 'rtl' : 'ltr'}

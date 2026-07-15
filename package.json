@@ -75,6 +75,7 @@
     "vite-plugin-electron-renderer": "1.0.0"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.2",
     "@vscode/sudo-prompt": "9.3.2",
     "auto-launch": "5.0.6",
     "axios": "1.18.1",
