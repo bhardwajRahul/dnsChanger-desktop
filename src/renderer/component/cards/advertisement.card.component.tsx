@@ -13,7 +13,7 @@ export function AdvertisementCardComponent() {
 				setLoading(true)
 				setError(false)
 				const response = await axios.get<Advertisement>(
-					`${UrlsConstant.ADS_STORE}?t=${Date.now()}`,
+					`${UrlsConstant.ADS_STORE}?t=${Date.now()}`
 				)
 				if (!response.data || response.data.disabled) {
 					setAd(null)
@@ -73,7 +73,7 @@ export function AdvertisementCardComponent() {
 	return (
 		<div
 			className={
-				'p-1 dark:bg-[#262626] bg-base-200 rounded-2xl shadow-sm h-[70px] max-h-[70px] overflow-hidden cursor-pointer w-[360px] max-w-[360px] relative'
+				'p-1 dark:bg-[#262626] bg-base-200 rounded-2xl shadow-sm h-[70px] max-h-[70px] overflow-hidden cursor-pointer w-full relative'
 			}
 			onClick={handleAdClick}
 		>

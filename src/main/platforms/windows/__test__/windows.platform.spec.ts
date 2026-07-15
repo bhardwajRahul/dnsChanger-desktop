@@ -1,6 +1,6 @@
 import { WindowsPlatform } from '../windows.platform'
 import { Interface } from '../interfaces/interface'
-import * as sudo from 'sudo-prompt'
+import * as sudo from '@vscode/sudo-prompt'
 
 describe('WinPlatform()', () => {
 	let windowsPlatform: WindowsPlatform

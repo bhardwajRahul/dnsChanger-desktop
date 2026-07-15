@@ -1,157 +1,111 @@
-import { useContext, useState } from 'react'
-import { Button } from 'react-daisyui'
+import { useContext, useMemo, useState } from 'react'
 import ReactGA from 'react-ga4'
 import { AiOutlineLoading } from 'react-icons/ai'
 import { CiPower } from 'react-icons/ci'
+
+import { cn } from '../../utils/cn'
 import { serversContext } from '../../context/servers.context'
 import { appNotif } from '../../notifications/appNotif'
 
-enum statusStep {
-	CONNECTED = 0,
-	DISCONNECT = 1,
-}
-
 export function ConnectButtonComponent() {
-	const serversStateContext = useContext(serversContext)
+	const servers = useContext(serversContext)
 
-	const [loading, setLoading] = useState<boolean>(false)
-	async function clickHandler(step: statusStep) {
+	const [loading, setLoading] = useState(false)
+
+	const isConnected = useMemo(
+		() =>
+			!!servers.currentActive &&
+			servers.currentActive.key === servers.selected?.key,
+		[servers.currentActive, servers.selected]
+	)
+
+	const statusText = loading
+		? isConnected
+			? 'Disconnecting...'
+			: 'Connecting...'
+		: isConnected
+			? 'Connected'
+			: 'Disconnected'
+
+	async function handleClick() {
 		if (loading) return
-		if (!serversStateContext.selected) {
-			appNotif('Error', 'please first pick your favorite server')
+
+		if (!servers.selected) {
+			appNotif('Error', 'Please select a server first.')
 			return
 		}
 
 		setLoading(true)
-		if (step == statusStep.CONNECTED) {
-			// req disconnect
-			const response = await window.ipc.clearDns()
-			if (response.success) {
-				serversStateContext.setCurrentActive(null)
+
+		try {
+			if (isConnected) {
+				const response = await window.ipc.clearDns()
+
+				if (!response.success) {
+					window.ipc.dialogError('Error', response.message)
+					return
+				}
+
+				servers.setCurrentActive(null)
 				window.ipc.notif(response.message)
 			} else {
-				window.ipc.dialogError('Error', response.message)
-			}
+				const response = await window.ipc.setDns(servers.selected)
 
-		} else if (step == statusStep.DISCONNECT) {
-			// req connect
-			const response = await window.ipc.setDns(serversStateContext.selected)
-			if (response.success) {
-				serversStateContext.setCurrentActive(serversStateContext.selected)
+				if (!response.success) {
+					window.ipc.dialogError('Error', response.message)
+					return
+				}
+
+				servers.setCurrentActive(servers.selected)
 				window.ipc.notif(response.message)
+
 				ReactGA.event({
 					category: 'User',
 					action: 'CONNECTED',
-					label: serversStateContext.selected.name,
+					label: servers.selected.name,
 					value: 1,
 				})
-			} else {
-				window.ipc.dialogError('Error', response.message)
 			}
-
+		} finally {
+			setLoading(false)
 		}
-
-		setLoading(false)
 	}
 
-	//loading buttons
-	if (loading) {
-		if (
-			serversStateContext.currentActive &&
-			serversStateContext.currentActive?.key ==
-				serversStateContext.selected?.key
-		) {
-			//disconnecting
-			return (
-				<div className="flex flex-col justify-center pt-10 text-center">
-					{' '}
-					<div
-						className="bg-[#BB3D3D] outline -outline-offset-2 outline-8 outline-[#8c37373b] rounded-[70px] flex items-center justify-center"
-						style={{ width: 130, height: 130 }}
-					>
-						<AiOutlineLoading size={60} className={'spinner'} />
-					</div>
-					<div
-						className={
-							'mt-5 font-[balooTamma] text-1xl dark:text-white text-[#6B6A6A]'
-						}
-					>
-						Disconnecting...
-					</div>
-				</div>
-			)
-		}
-
-		//connecting
-		return (
-			<div className="flex flex-col justify-center pt-10 text-center">
-				{' '}
-				<div
-					className="bg-[#63A76A] outline -outline-offset-2 outline-8 outline-[#378c4040] rounded-[70px] flex items-center justify-center"
-					style={{ width: 130, height: 130 }}
-				>
-					<AiOutlineLoading size={60} className={'spinner'} />
-				</div>
-				<div
-					className={
-						'mt-5 font-[balooTamma] text-1xl dark:text-white text-[#6B6A6A]'
-					}
-				>
-					Connecting...
-				</div>
-			</div>
-		)
-	}
-
-	if (
-		serversStateContext.currentActive &&
-		serversStateContext.currentActive?.key == serversStateContext.selected?.key
-	) {
-		//isConnect
-		return (
-			<div className="flex flex-col justify-center pt-10 text-center">
-				<Button
-					onClick={() => clickHandler(statusStep.CONNECTED)}
-					shape={'circle'}
-					className="bg-[#378C40] border-none  outline -outline-offset-2 outline-8 outline-[#378c4040] hover:bg-[#297030]"
-					style={{ width: 130, height: 130 }}
-				>
-					<CiPower size={60} className={'text-gray-300 dark:text-gray-500'} />
-				</Button>
-				<div
-					className={
-						'mt-5 font-[balooTamma] text-2xl dark:text-white text-[#6B6A6A]'
-					}
-				>
-					Connected
-				</div>
-			</div>
-		)
-	}
-
-	//disconnect Btn
 	return (
-		<div className="flex flex-col justify-center pt-10 text-center">
-			<Button
-				onClick={() => clickHandler(statusStep.DISCONNECT)}
-				shape={'circle'}
-				className="disconnectedBtn dark:bg-white bg-[#AFAFAF] border-none
-             outline -outline-offset-2 outline-8 outline-[#cfcfcf1a] hover:bg-[#AAA9A9] dark:hover:bg-gray-300 flex items-center justify-center"
-				style={{ width: 130, height: 130 }}
+		<div className="flex flex-col items-center justify-center pt-10 text-center">
+			<button
+				type="button"
+				onClick={handleClick}
+				disabled={loading}
+				aria-label={statusText}
+				className={cn(
+					'flex h-32 w-32 items-center justify-center rounded-full  outline-8 -outline-offset-2 transition-all duration-300 active:scale-95 disabled:pointer-events-none disabled:cursor-not-allowed',
+					loading &&
+						'cursor-wait bg-base-300 text-base-content outline-base-300/40',
+					!loading &&
+						isConnected &&
+						'bg-success/80 text-success-content outline-success/20 hover:bg-success/90 shadow-lg shadow-success/20',
+					!loading &&
+						!isConnected &&
+						'bg-base-100 text-base-content outline-base-300/40 hover:bg-base-200 shadow-lg shadow-base-300/20'
+				)}
 			>
-				<CiPower
-					size={60}
-					style={{ transform: 'rotate(180deg)' }}
-					className={'text-gray-300 dark:text-gray-500'}
-				/>
-			</Button>
-			<div
-				className={
-					'mt-5 font-[balooTamma] text-2xl dark:text-white text-[#6B6A6A]'
-				}
-			>
-				Disconnected
-			</div>
+				{loading ? (
+					<AiOutlineLoading size={60} className="animate-spin" />
+				) : (
+					<CiPower
+						size={60}
+						className={cn(
+							'transition-transform duration-300',
+							!isConnected && 'rotate-180'
+						)}
+					/>
+				)}
+			</button>
+
+			<p className="mt-5 w-42 min-w-42 truncate  font-[balooTamma] text-2xl text-base-content/70">
+				{statusText}
+			</p>
 		</div>
 	)
 }

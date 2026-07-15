@@ -1,8 +1,10 @@
 import { useContext, useState } from 'react'
-import { Button, Tooltip } from 'react-daisyui'
+
 import { BsHddNetwork } from 'react-icons/bs'
 import { serversContext } from '../../context/servers.context'
 import { NetworkOptionsModalComponent } from '../modals/network-options.component'
+import Tooltip from '../tooltip/toolTip'
+import { Button } from '../button/button'
 
 export function InterfacesDialogButtonComponent() {
 	const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
@@ -14,19 +16,13 @@ export function InterfacesDialogButtonComponent() {
 
 	return (
 		<div>
-			<Tooltip message="Network Interfaces" position="top">
+			<Tooltip content="Network Interfaces" position="top">
 				<Button
-					shape={'square'}
 					size={'sm'}
 					onClick={toggleOpenModal}
-					className={
-						'bg-base-200 hover:bg-[#d3d2d2] dark:bg-[#262626] hover:dark:bg-[#323232]  border-none text-center transition-all duration-300 ease-in-out'
-					}
+					className="bg-base-200 hover:bg-base-200/80"
 				>
-					<BsHddNetwork
-						className={'dark:text-gray-600 text-gray-700'}
-						size={16}
-					/>
+					<BsHddNetwork size={16} />
 				</Button>
 				<NetworkOptionsModalComponent
 					isOpen={isOpenModal}

@@ -1,4 +1,4 @@
-import sudo from 'sudo-prompt'
+import sudo  from '@vscode/sudo-prompt'
 
 export abstract class Platform {
 	public abstract setDns(nameServers: string[]): Promise<void>
@@ -18,7 +18,7 @@ export abstract class Platform {
 					reject(error)
 					return
 				}
-				resolve(stdout)
+				resolve(stdout as any)
 			})
 		})
 	}

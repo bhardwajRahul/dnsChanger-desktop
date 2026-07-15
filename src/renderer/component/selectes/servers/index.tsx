@@ -1,31 +1,27 @@
-import React, { useContext } from 'react'
-import { Select } from 'react-daisyui'
-import { ServerStore } from '../../../../shared/interfaces/server.interface'
+import { useContext } from 'react'
+import type { ServerStore } from '../../../../shared/interfaces/server.interface'
 import { serversContext } from '../../../context/servers.context'
-import { ServersContext } from '../../../interfaces/servers-context.interface'
+import type { ServersContext } from '../../../interfaces/servers-context.interface'
 
 export function ServersListSelectComponent() {
 	const serversStateContext = useContext(serversContext)
 	const selectedDef =
-		serversStateContext.selected?.key == 'unknown' ||
-		!serversStateContext.selected
+		serversStateContext.selected?.key === 'unknown' || !serversStateContext.selected
 	function onChange(key: string) {
-		const server = serversStateContext.servers.find((ser) => ser.key == key)
+		const server = serversStateContext.servers.find((ser) => ser.key === key)
 		serversStateContext.setSelected(server)
 	}
 	return (
-		<Select
-			className={
-				'w-[360px] dark:bg-[#262626] bg-base-200 text-[#6B6A6A] border-none rounded-2xl'
-			}
-			borderOffset={true}
+		<select
+			className={'select w-full  bg-base-200   border-none rounded-2xl'}
+			// borderOffset={true}
 			onChange={(data) => onChange(data.target.value)}
 		>
-			<Select.Option value={'default'} selected={selectedDef} disabled={true}>
+			<option value={'default'} selected={selectedDef} disabled={true}>
 				Pick your favorite Server
-			</Select.Option>
+			</option>
 			{servers(serversStateContext)}
-		</Select>
+		</select>
 	)
 }
 
@@ -35,13 +31,13 @@ function servers(serversStateContext: ServersContext): any {
 	const renderServer = (server: ServerStore) => {
 		const isConnect = serversStateContext.currentActive?.key === server.key
 		return (
-			<Select.Option
+			<option
 				key={server.key}
 				value={server.key}
 				selected={server.key === serversStateContext.selected?.key}
 			>
 				{isConnect ? '🟢' : '🔴'} {server.name}
-			</Select.Option>
+			</option>
 		)
 	}
 
@@ -49,28 +45,28 @@ function servers(serversStateContext: ServersContext): any {
 
 	if (pins.length > 0) {
 		pins.unshift(
-			<Select.Option
+			<option
 				key=""
 				value=""
 				disabled={true}
 				className="text-center bg-gray-300 text-gray-600 dark:bg-[#262626] dark:text-gray-500 mt-5"
 			>
 				Pinned
-			</Select.Option>,
+			</option>
 		)
 	}
 
 	const allServers = serversStateContext.servers.filter((ser) => !ser.isPin)
 	const all = allServers.map(renderServer)
 	all.unshift(
-		<Select.Option
+		<option
 			key=""
 			value=""
 			disabled={true}
 			className="text-center bg-gray-300 text-gray-600 dark:bg-[#262626] dark:text-gray-500"
 		>
 			All
-		</Select.Option>,
+		</option>
 	)
 
 	return [...pins, ...all]

@@ -2,182 +2,239 @@ import { useContext, useEffect, useState } from 'react'
 import { Avatar } from 'react-daisyui'
 import { FiCopy } from 'react-icons/fi'
 import { TfiReload } from 'react-icons/tfi'
+
 import icon from '../../../../../public/icons/icon.png'
+
 import { useI18nContext } from '../../../../i18n/i18n-react'
 import { serversContext } from '../../../context/servers.context'
 import { getPingIcon } from '../../../utils/icons.util'
+import { cn } from '../../../utils/cn'
+
 import { DeleteButtonComponent } from '../../buttons/delete-btn.component'
 import { ToggleButtonComponent } from '../../buttons/togglePin-btn.component'
+
 interface Prop {
 	loadingCurrentActive: boolean
 }
 
-const ServerCardWrapper = ({ children }) => {
+function ServerCardWrapper({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="dark:bg-[#262626] bg-base-200 w-full mt-1 rounded-2xl shadow-md overflow-hidden h-52 min-h-52 max-h-52">
+		<div className="w-full overflow-hidden shadow-lg h-52 rounded-2xl bg-base-200">
 			{children}
 		</div>
 	)
 }
 
-export function ServerInfoCardComponent(prop: Prop) {
-	const serversStateContext = useContext(serversContext)
-	const [isCopyAdds, setIsCopyAdds] = useState<boolean>(true)
-	const [ping, setPing] = useState<number>()
+function InfoTile({
+	title,
+	children,
+	action,
+}: {
+	title: string
+	children: React.ReactNode
+	action?: React.ReactNode
+}) {
+	return (
+		<div className="p-3 transition-colors rounded-xl bg-base-300/40 hover:bg-base-300/60">
+			<div className="flex items-center justify-between mb-2">
+				<span className="text-xs tracking-wide uppercase text-base-content/50">
+					{title}
+				</span>
+
+				{action}
+			</div>
+
+			<div>{children}</div>
+		</div>
+	)
+}
+
+export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
+	const servers = useContext(serversContext)
+
 	const { LL } = useI18nContext()
 
+	const [ping, setPing] = useState<number>()
+
+	const [copied, setCopied] = useState(false)
+
 	useEffect(() => {
-		if (isCopyAdds) {
-			setTimeout(() => {
-				setIsCopyAdds(false)
-			}, 700)
+		if (!copied) return
+
+		const timer = setTimeout(() => {
+			setCopied(false)
+		}, 1000)
+
+		return () => clearTimeout(timer)
+	}, [copied])
+
+	useEffect(() => {
+		if (servers.selected) {
+			refreshPing()
 		}
-	}, [isCopyAdds])
+	}, [servers.selected, servers.currentActive])
 
-	useEffect(() => {
-		if (serversStateContext.selected) getPing()
-	}, [serversStateContext.selected, serversStateContext.currentActive])
+	function refreshPing() {
+		if (!servers.selected) return
 
-	function getPing() {
-		setPing(0)
-		window.ipc
-			.ping(serversStateContext.selected)
-			.then((res) => res.success && setPing(res.data.time))
+		setPing(undefined)
+
+		window.ipc.ping(servers.selected).then((res) => {
+			if (res.success) {
+				setPing(res.data.time)
+			}
+		})
 	}
-	if (!serversStateContext.selected) {
+
+	if (!servers.selected) {
 		return (
 			<ServerCardWrapper>
-				<div className={'flex flex-col gap-2 justify-center h-full'}>
-					<div className={'flex flex-row gap-2 items-center justify-center'}>
-						<Avatar src={icon} size={'xs'} className={'mb-2'} />
-						<h1 className={'text-2xl font-[balooTamma] text-[#7487FF]'}>
-							{LL.pages.home.homeTitle()}
-						</h1>
+				<div className="flex flex-col items-center justify-center h-full gap-4">
+					<div className="flex items-center gap-3">
+						<Avatar src={icon} size="sm" />
+
+						<div>
+							<h2 className="font-[balooTamma] text-2xl text-primary">
+								{LL.pages.home.homeTitle()}
+							</h2>
+
+							<p className="text-xs text-base-content/60">
+								{LL.version()} {import.meta.env.PACKAGE_VERSION}
+							</p>
+						</div>
 					</div>
-					{prop.loadingCurrentActive && (
-						<div className={'flex flex-row gap-2 items-center justify-center'}>
-							<span className="loading loading-ring loading-xs"></span>
-							<span className={'text-[#7B7B7B]'}>
-								Fetching current active...
-							</span>
+
+					{loadingCurrentActive && (
+						<div className="flex items-center gap-2 text-base-content/60">
+							<span className="loading loading-ring loading-sm"></span>
+
+							<span className="text-sm">Fetching current active...</span>
 						</div>
 					)}
-					<span className={'text-[#787878] text-sm text-center'}>
-						{LL.version()} {import.meta.env.PACKAGE_VERSION}
-					</span>
 				</div>
 			</ServerCardWrapper>
 		)
 	}
-	const isConnect =
-		serversStateContext.currentActive?.key == serversStateContext.selected.key
+
+	const isConnected = servers.currentActive?.key === servers.selected.key
+
 	const name =
-		serversStateContext.selected.name?.length > 14
-			? `${serversStateContext.selected.name.slice(0, 12)}...`
-			: serversStateContext.selected.name
+		servers.selected.name.length > 18
+			? `${servers.selected.name.slice(0, 18)}...`
+			: servers.selected.name
+
 	const network =
-		serversStateContext.network?.length > 14
-			? `${serversStateContext.network.slice(0, 12)}...`
-			: serversStateContext.network
+		servers.network && servers.network.length > 18
+			? `${servers.network.slice(0, 18)}...`
+			: servers.network
 
 	return (
 		<ServerCardWrapper>
-			<div className="flex items-center justify-between px-3 py-1 border-b border-gray-200 dark:border-gray-700/50">
-				<div className="flex items-center space-x-2">
-					<div className="p-2 bg-gray-200 rounded-full dark:bg-gray-800/20">
-						<img
-							src={`./servers-icon/${serversStateContext.selected.avatar}`}
-							alt=""
-							className="w-6 h-6 rounded-full"
-							onError={({ currentTarget }) => {
-								currentTarget.onerror = null
-								currentTarget.src = './servers-icon/def.png'
-							}}
-						/>
-					</div>
-					<div className="flex flex-col gap-0.5">
-						<h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">
-							{name || 'Unknown'}
-						</h2>
-						<span className="text-xs text-gray-500">DNS Server</span>
-					</div>
-				</div>
-
-				{/* Connection Status */}
-				<div
-					className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-[balooTamma] ${isConnect ? 'bg-green-100 text-green-600 dark:bg-green-900/20' : 'bg-red-100 text-red-600 dark:bg-red-900/20'}`}
-				>
-					<span
-						className={`block w-2 h-2 rounded-full ${isConnect ? 'bg-green-600' : 'bg-red-600'}`}
-					></span>
-					{isConnect ? 'Connected' : 'Disconnected'}
-				</div>
-			</div>
-
-			{/* Server Details Section */}
-			<div className="p-1">
-				<div className="grid w-full grid-cols-1 gap-4">
-					<div className="w-full px-3 py-2 rounded-lg">
-						<div className="flex items-center justify-between mb-1">
-							<h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">
-								{window.os.os === 'win32' ? 'Network' : 'Performance'}
-							</h3>
-							<button
-								onClick={getPing}
-								className="flex items-center gap-1 p-1 text-gray-600 rounded-full hover:text-gray-900 hover:bg-gray-300 dark:hover:text-gray-300 dark:hover:bg-gray-700"
-							>
-								<TfiReload size={14} />
-							</button>
-						</div>
-
-						<div className="flex flex-col space-y-2">
-							{window.os.os === 'win32' && (
-								<div className="flex items-center justify-between">
-									<span className="text-xs text-gray-500">Interface:</span>
-									<span className="text-sm font-medium text-gray-800 dark:text-gray-200/70 bg-gray-300 dark:bg-gray-800/50 px-2 py-0.5 rounded">
-										{network}
-									</span>
-								</div>
-							)}
-
-							<div className="flex items-center justify-between">
-								<span className="text-xs text-gray-500">Ping:</span>
-								<div className="flex items-center">
-									{ping > 0 && getPingIcon(ping)}
-									<span className="ml-1 text-sm font-medium text-gray-800 dark:text-gray-200/70">
-										{ping ? `${ping}ms` : 'Testing...'}
-									</span>
-								</div>
-							</div>
-							<div className="flex items-center justify-between">
-								<span className="text-xs text-gray-500">DNS Address:</span>
-								<div className="flex items-center">
-									{isCopyAdds ? (
-										<span className="text-xs font-medium text-green-500">
-											Copied!
-										</span>
-									) : (
-										<button
-											onClick={() => {
-												navigator.clipboard.writeText(
-													serversStateContext.selected.servers.join(','),
-												)
-												setIsCopyAdds(true)
-											}}
-											className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-										>
-											<FiCopy size={14} />
-										</button>
-									)}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Action Buttons */}
+			<div className="flex flex-col h-full p-4">
+				{/* Header */}
 				<div className="flex items-center justify-between">
-					<div className="flex items-center space-x-2">
+					<div className="flex items-center gap-3">
+						<div className="p-2 rounded-xl bg-base-300">
+							<img
+								src={`./servers-icon/${servers.selected.avatar}`}
+								className="w-8 h-8 rounded-full"
+								onError={({ currentTarget }) => {
+									currentTarget.onerror = null
+									currentTarget.src = './servers-icon/def.png'
+								}}
+							/>
+						</div>
+
+						<div>
+							<div className="flex gap-0.5">
+								<p className="font-semibold text-base-content">{name}</p>
+							</div>
+
+							<p className="text-xs text-base-content/50">
+								Public DNS Server
+							</p>
+						</div>
+					</div>
+
+					<div
+						className={cn(
+							'flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium',
+							isConnected
+								? 'bg-success/15 text-success'
+								: 'bg-error/15 text-error'
+						)}
+					>
+						<div
+							className={cn(
+								'h-2 w-2 rounded-full',
+								isConnected ? 'bg-success' : 'bg-error'
+							)}
+						/>
+
+						{isConnected ? 'Connected' : 'Disconnected'}
+					</div>
+				</div>
+				{/* Stats */}
+				<div className="grid grid-cols-3 gap-3 mt-4">
+					<InfoTile title={window.os.os === 'win32' ? 'Network' : 'Status'}>
+						<div className="text-sm font-medium truncate text-base-content">
+							{window.os.os === 'win32' ? network : 'Ready'}
+						</div>
+					</InfoTile>
+
+					<InfoTile
+						title="Ping"
+						action={
+							<button
+								onClick={refreshPing}
+								className="p-1 transition-colors rounded hover:bg-base-300"
+							>
+								<TfiReload size={12} />
+							</button>
+						}
+					>
+						<div className="flex items-center gap-2">
+							{ping && getPingIcon(ping)}
+
+							<span className="text-sm font-medium">
+								{ping ? `${ping} ms` : 'Testing...'}
+							</span>
+						</div>
+					</InfoTile>
+
+					<InfoTile
+						title="DNS"
+						action={
+							copied ? (
+								<span className="text-xs text-success">Copied</span>
+							) : (
+								<button
+									onClick={() => {
+										navigator.clipboard.writeText(
+											servers.selected.servers.join(', ')
+										)
+
+										setCopied(true)
+									}}
+									className="p-1 transition-colors rounded hover:bg-base-300"
+								>
+									<FiCopy size={13} />
+								</button>
+							)
+						}
+					>
+						<div className="text-sm font-medium truncate">
+							{servers.selected.servers[0]}
+						</div>
+					</InfoTile>
+				</div>
+
+				{/* <div className="flex mt-3">
+					<DeleteButtonComponent />
+				</div> */}
+				<div className="flex items-center justify-between pt-3 mt-auto text-xs text-base-content/40">
+					<span>{servers.selected.type ?? 'DNS Server'}</span>
+					<div className="flex items-center gap-1">
 						<DeleteButtonComponent />
 						<ToggleButtonComponent />
 					</div>

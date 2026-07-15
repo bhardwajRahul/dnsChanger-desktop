@@ -8,10 +8,7 @@ import { MdOutlineExplore } from 'react-icons/md'
 import { TbSettings, TbSmartHome } from 'react-icons/tb'
 import TypesafeI18n from '../i18n/i18n-react'
 import { loadLocaleAsync } from '../i18n/i18n-util.async'
-import {
-	SettingInStore,
-	Settings,
-} from '../shared/interfaces/settings.interface'
+import { SettingInStore, Settings } from '../shared/interfaces/settings.interface'
 import { PageWrapper } from './Wrappers/pages.wrapper'
 import { ExplorePage } from './pages/explore.page'
 import { HomePage } from './pages/home.page'
@@ -104,32 +101,37 @@ export function App() {
 		<div>
 			<TypesafeI18n locale={settingStore.lng}>
 				<PageWrapper>{currentPage.element}</PageWrapper>
-				<BottomNavigation
-					size="xs"
-					className="mb-2 -bottom-2 h-16 bg-[#CCCCCC]"
+				<div
+					className="fixed bottom-0 left-0 right-0 h-16 bg-[#CCCCCC] flex items-center justify-around px-4"
 					dir={settingStore.lng == 'fa' ? 'rtl' : 'ltr'}
 				>
 					{pages.map((page) => {
 						return (
-							<div onClick={() => setCurrentPath(page.key)} key={page.key}>
-								<Tooltip message={page.name}>
-									<div
-										className={`rounded-full p-2 ${
+							<div
+								key={page.key}
+								onClick={() => setCurrentPath(page.key)}
+								className="cursor-pointer"
+							>
+								<div
+									className={`rounded-full p-2 transition-colors duration-200 ${
+										InPath(page.key)
+											? 'bg-[#7487FF1C]'
+											: 'hover:bg-[#7487ff09] hover:text-[#5B64A4]'
+									}`}
+								>
+									{React.createElement(page.icon, {
+										className: `${
 											InPath(page.key)
-												? 'bg-[#7487FF1C]'
-												: 'hover:bg-[#7487ff09] hover:text-[#5B64A4]'
-										}`}
-									>
-										{React.createElement(page.icon, {
-											className: `${InPath(page.key) ? 'text-[#5B64A4]' : 'text-[#8D8D8D] '}`,
-											size: 30,
-										})}
-									</div>
-								</Tooltip>
+												? 'text-[#5B64A4]'
+												: 'text-[#8D8D8D]'
+										}`,
+										size: 30,
+									})}
+								</div>
 							</div>
 						)
 					})}
-				</BottomNavigation>
+				</div>
 				<Toaster />
 			</TypesafeI18n>
 		</div>
