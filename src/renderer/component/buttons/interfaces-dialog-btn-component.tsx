@@ -16,13 +16,13 @@ export function InterfacesDialogButtonComponent() {
 
 	return (
 		<div>
-			<Tooltip content="Network Interfaces" position="top">
+			<Tooltip content="Network Interfaces" position="left">
 				<Button
 					size={'sm'}
 					onClick={toggleOpenModal}
-					className="bg-base-200 hover:bg-base-200/80"
+					className="bg-base-200 hover:bg-base-200/80 rounded-xl"
 				>
-					<BsHddNetwork size={16} />
+					<BsHddNetwork className="text-base-content/80" size={14} />
 				</Button>
 				<NetworkOptionsModalComponent
 					isOpen={isOpenModal}

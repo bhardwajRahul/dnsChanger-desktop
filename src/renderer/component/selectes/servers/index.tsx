@@ -13,8 +13,9 @@ export function ServersListSelectComponent() {
 	}
 	return (
 		<select
-			className={'select w-full  bg-base-200   border-none rounded-2xl'}
-			// borderOffset={true}
+			className={
+				'select w-full  bg-base-200  outline-primary/30 border-none rounded-2xl cursor-pointer'
+			}
 			onChange={(data) => onChange(data.target.value)}
 		>
 			<option value={'default'} selected={selectedDef} disabled={true}>
@@ -36,7 +37,12 @@ function servers(serversStateContext: ServersContext): any {
 				value={server.key}
 				selected={server.key === serversStateContext.selected?.key}
 			>
-				{isConnect ? '🟢' : '🔴'} {server.name}
+				{server.name}
+				{isConnect ? (
+					<div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+				) : (
+					''
+				)}
 			</option>
 		)
 	}

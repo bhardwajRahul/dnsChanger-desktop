@@ -34,7 +34,7 @@ function InfoTile({
 	action?: React.ReactNode
 }) {
 	return (
-		<div className="p-3 transition-colors rounded-xl bg-base-300/40 hover:bg-base-300/60">
+		<div className="p-3 transition-colors rounded-xl bg-base-300/40">
 			<div className="flex items-center justify-between mb-2">
 				<span className="text-xs tracking-wide uppercase text-base-content/50">
 					{title}
@@ -80,7 +80,7 @@ export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
 
 		window.ipc.ping(servers.selected).then((res) => {
 			if (res.success) {
-				setPing(res.data.time)
+				setPing(res.data.time || -1)
 			}
 		})
 	}
@@ -186,17 +186,17 @@ export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
 						action={
 							<button
 								onClick={refreshPing}
-								className="p-1 transition-colors rounded hover:bg-base-300"
+								className="p-1 transition-colors rounded cursor-pointer hover:bg-base-300/60"
 							>
 								<TfiReload size={12} />
 							</button>
 						}
 					>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 truncate">
 							{ping && getPingIcon(ping)}
 
 							<span className="text-sm font-medium">
-								{ping ? `${ping} ms` : 'Testing...'}
+								{ping ? `${ping || -1} ms` : 'Testing...'}
 							</span>
 						</div>
 					</InfoTile>
@@ -215,7 +215,7 @@ export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
 
 										setCopied(true)
 									}}
-									className="p-1 transition-colors rounded hover:bg-base-300"
+									className="p-1 transition-colors rounded cursor-pointer hover:bg-base-300/60"
 								>
 									<FiCopy size={13} />
 								</button>

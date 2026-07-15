@@ -74,7 +74,7 @@ export function HomePage() {
 					</div>
 
 					<div className="relative flex flex-col gap-2 px-1 ml-auto w-96">
-						<div className="flex absolute -left-12 -top-5 flex-col gap-2 pt-18.5">
+						<div className="flex absolute -left-11 -top-6 flex-col gap-2 pt-18.5">
 							<AddCustomDnsButton />
 
 							{osType === 'win32' && <InterfacesDialogButtonComponent />}

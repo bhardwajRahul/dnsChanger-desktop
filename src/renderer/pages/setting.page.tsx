@@ -86,14 +86,14 @@ export function SettingPage() {
 						<div className="flex flex-wrap gap-2">
 							<button
 								onClick={() => window.ipc.openLogFile()}
-								className="btn btn-ghost btn-sm"
+								className="btn btn-ghost btn-sm rounded-xl"
 							>
 								<FaFileAlt size={14} />
 								Open Log
 							</button>
 							<button
 								onClick={() => window.ipc.openDevTools()}
-								className="btn btn-ghost btn-sm"
+								className="btn btn-ghost btn-sm rounded-xl"
 							>
 								<FaLaptop size={14} />
 								Open Dev Tools
@@ -131,7 +131,7 @@ function SettingsSwitch({
 	}
 
 	return (
-		<div className="flex items-start gap-3 p-1 transition-colors rounded-lg hover:bg-base-200">
+		<div className="flex items-start gap-3 p-1 transition-colors rounded-lg">
 			<div className="flex items-center flex-1 min-w-0 gap-2">
 				<span className="text-base-content/70">{icon}</span>
 				<div className="flex-1 min-w-0">

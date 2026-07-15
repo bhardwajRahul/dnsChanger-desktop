@@ -15,13 +15,13 @@ export function AddCustomDnsButton() {
 
 	return (
 		<div>
-			<Tooltip content="Add Custom DNS" position="top">
+			<Tooltip content="Add Custom DNS" position="left">
 				<Button
 					size={'sm'}
 					onClick={toggleOpenModal}
-					className={'bg-base-200 hover:bg-base-200/80 rounded-lg'}
+					className={'bg-base-200 hover:bg-base-200/80 rounded-xl'}
 				>
-					<MdOutlineAddModerator size={16} />
+					<MdOutlineAddModerator className="text-base-content/80" size={14} />
 				</Button>
 				<AddDnsModalComponent
 					isOpen={isOpenModal}

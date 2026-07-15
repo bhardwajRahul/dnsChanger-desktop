@@ -21,16 +21,16 @@ export function FlushDNS_BtnComponent() {
 
 	return (
 		<div>
-			<Tooltip content="Flush DNS" position="top">
+			<Tooltip content="Flush DNS" position="left">
 				<Button
 					size={'sm'}
 					onClick={handleClick}
 					disabled={loading}
-					className={'bg-base-200 hover:bg-base-200/80'}
+					className={'bg-base-200 hover:bg-base-200/80 rounded-xl'}
 				>
 					<FaBroom
-						// className={`dark:text-gray-600 text-gray-700  ${loading ? 'animate-pulse' : ''}`}
-						size={16}
+						className={`text-base-content/80 ${loading ? 'animate-pulse' : ''}`}
+						size={14}
 					/>
 				</Button>
 			</Tooltip>
