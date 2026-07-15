@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState } from 'react'
-import { Avatar } from 'react-daisyui'
 import { FiCopy } from 'react-icons/fi'
 import { TfiReload } from 'react-icons/tfi'
 
@@ -91,7 +90,7 @@ export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
 			<ServerCardWrapper>
 				<div className="flex flex-col items-center justify-center h-full gap-4">
 					<div className="flex items-center gap-3">
-						<Avatar src={icon} size="sm" />
+						<img src={icon} alt="" className="w-14 h-14 avatar" />
 
 						<div>
 							<h2 className="font-[balooTamma] text-2xl text-primary">
@@ -211,7 +210,7 @@ export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
 								<button
 									onClick={() => {
 										navigator.clipboard.writeText(
-											servers.selected.servers.join(', ')
+											servers.selected?.servers?.join(', ') || ''
 										)
 
 										setCopied(true)
@@ -229,9 +228,6 @@ export function ServerInfoCardComponent({ loadingCurrentActive }: Prop) {
 					</InfoTile>
 				</div>
 
-				{/* <div className="flex mt-3">
-					<DeleteButtonComponent />
-				</div> */}
 				<div className="flex items-center justify-between pt-3 mt-auto text-xs text-base-content/40">
 					<span>{servers.selected.type ?? 'DNS Server'}</span>
 					<div className="flex items-center gap-1">

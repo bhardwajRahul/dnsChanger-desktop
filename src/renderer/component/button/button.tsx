@@ -38,7 +38,7 @@ export function Button(prop: ButtonProps) {
 				? prop.loadingText || (
 						<div className="flex items-center gap-1">
 							{/* <Icon name="spinner" className="animate-spin" /> */}
-							<span className="text-xs">صبر کنید...</span>
+							<span className="text-xs">wait...</span>
 						</div>
 					)
 				: prop.children}

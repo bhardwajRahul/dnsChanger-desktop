@@ -1,35 +1,39 @@
 appId: dnschanger.github.io
 productName: DNS Changer
-afterPack: "removeLocales.js"
-artifactName: "${productName}-${os}-${arch}-${version}.${ext}"
+afterPack: 'removeLocales.js'
+artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
 files:
-  - "**/*"
-  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples}"
-  - "!**/node_modules/.bin"
-  - "!**/*.{o,hprof,orig,pyc,pyo,rbc}"
-  - "!**/._*"
-  - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,.nyc_output,yarn.lock,.yarn-integrity}"
-  - "!**/node_modules/search-index/si${/*}"
+  - '**/*'
+  - '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples}'
+  - '!**/node_modules/.bin'
+  - '!**/*.{o,hprof,orig,pyc,pyo,rbc}'
+  - '!**/._*'
+  - '!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,.nyc_output,yarn.lock,.yarn-integrity}'
+  - '!**/node_modules/search-index/si${/*}'
   - '!**/*.md' # ignore md files
   - '!**/*.yml' # ignore yml files
   - '!**/.github'
   - '!**/release'
+  - '!**/.eslint*'
+  - '!**/jest*'
+  - '!**/*.test.*'
+  - '!**/__tests__'
 asar: true
 compression: maximum
 directories:
-  output: "release/${version}"
+  output: 'release/${version}'
 win:
-  icon: "public/icons/icon.ico"
-  requestedExecutionLevel: "highestAvailable"
+  icon: 'public/icons/icon.ico'
+  requestedExecutionLevel: 'highestAvailable'
   publish:
     - github
   target:
-    - zip
+    # - zip
     - msi
-    - nsis
+    # - nsis
 linux:
-  icon: "public/icons/icon.icns"
-  maintainer: "dnschanger.github.io"
+  icon: 'public/icons/icon.icns'
+  maintainer: 'dnschanger.github.io'
   target:
     - rpm
     - AppImage
@@ -38,7 +42,7 @@ linux:
   publish:
     - github
 mac:
-  icon: "public/icons/icon.png"
+  icon: 'public/icons/icon.png'
   target:
     - dmg
     - zip
@@ -48,16 +52,16 @@ mac:
 nsis:
   perMachine: true
   oneClick: false
-  installerIcon: "public/icons/icon.ico"
+  installerIcon: 'public/icons/icon.ico'
   deleteAppDataOnUninstall: true
   runAfterFinish: true
   createDesktopShortcut: true
   allowToChangeInstallationDirectory: true
-  shortcutName: "DNS Changer"
+  shortcutName: 'DNS Changer'
 npmRebuild: true
 nodeGypRebuild: false
 
 publish:
   provider: github
-  owner: "DnsChanger"
-  repo: "dnsChanger-desktop"
+  owner: 'DnsChanger'
+  repo: 'dnsChanger-desktop'

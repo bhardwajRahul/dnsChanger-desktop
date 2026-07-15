@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { Select } from 'react-daisyui'
+import { useContext, useEffect, useState } from 'react'
 import { settingStore } from '../../app'
 import { serversContext } from '../../context/servers.context'
-import { setState } from '../../interfaces/react.interface'
-import { ServersContext } from '../../interfaces/servers-context.interface'
+import type { setState } from '../../interfaces/react.interface'
+import type { ServersContext } from '../../interfaces/servers-context.interface'
 import Modal from './modal'
 import { Button } from '../button/button'
 
@@ -28,7 +27,7 @@ export function NetworkOptionsModalComponent(props: Props) {
 		const fetchNetworkInterfaces = async () => {
 			try {
 				const interfaces = await window.os.getInterfaces()
-				const networks = interfaces.map((d) => d.name)
+				const networks = interfaces.map((d: any) => d.name)
 				networks.unshift('Auto')
 				setNetworkAdapters(networks)
 			} finally {
@@ -70,18 +69,18 @@ export function NetworkOptionsModalComponent(props: Props) {
 						fetching interfaces...
 					</div>
 				) : (
-					<Select
+					<select
 						onChange={(value) =>
 							setNetworkInterfaceInterface(value.target.value)
 						}
-						className="px-2"
+						className="px-2 select"
 					>
 						{networkAdapters.map((item) => (
-							<Select.Option value={item} selected={item == network}>
+							<option value={item} selected={item === network} key={item}>
 								{item}
-							</Select.Option>
+							</option>
 						))}
-					</Select>
+					</select>
 				)}
 				<Button
 					className="normal-case font-[balooTamma] text-xl w-full mt-4 rounded-xl"

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { Button, Input } from 'react-daisyui'
 import {
 	IoAddCircleOutline,
 	IoReload,
@@ -16,6 +15,7 @@ import { CiCircleMore } from 'react-icons/ci'
 import { FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { getPingIcon } from '../utils/icons.util'
 import { TextInput } from '../component/input/text-input'
+import { Button } from '../component/button/button'
 
 let STORED_SERVERS: Server[] = []
 
@@ -116,8 +116,8 @@ export function ExplorePage() {
 					</div>
 
 					<Button
-						color="ghost"
 						size="sm"
+						className="btn-ghost"
 						loading={loading}
 						onClick={fetchDnsList}
 					>
