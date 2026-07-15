@@ -80,13 +80,7 @@ html[data-theme="dark"]::-webkit-scrollbar {
 	}
 }
 
-html.dark {
-	background-color: #212121;
-}
 
-html.light {
-	background-color: #e6e6e6;
-}
 
 html.dark .btm-nav {
 	background-color: #262626;

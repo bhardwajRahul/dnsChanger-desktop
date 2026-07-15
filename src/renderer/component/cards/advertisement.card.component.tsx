@@ -44,7 +44,7 @@ export function AdvertisementCardComponent() {
 		return (
 			<div
 				className={
-					'p-2 dark:bg-[#262626] bg-base-200 rounded-2xl shadow-sm h-[70px] max-h-[70px] flex items-center justify-center'
+					'p-2bg-base-200 rounded-2xl shadow-sm h-17.5  flex items-center justify-center'
 				}
 			>
 				<div className="flex flex-row items-center gap-2">
@@ -73,7 +73,7 @@ export function AdvertisementCardComponent() {
 	return (
 		<div
 			className={
-				'p-1 dark:bg-[#262626] bg-base-200 rounded-2xl shadow-sm h-[70px] max-h-[70px] overflow-hidden cursor-pointer w-full relative'
+				'p-1 bg-base-200 rounded-2xl shadow-sm h-17.5  cursor-pointer relative'
 			}
 			onClick={handleAdClick}
 		>
@@ -89,7 +89,7 @@ export function AdvertisementCardComponent() {
 					}}
 				/>
 			</div>
-			<div className="absolute top-0 right-0 bg-gray-500/30 text-white text-[10px] px-1.5 py-0.5 rounded-bl-lg rounded-tr-lg font-medium">
+			<div className="absolute top-0 right-0 bg-base-200 text-base text-[10px] px-1.5 py-0.5 rounded-bl-lg rounded-tr-lg font-medium">
 				Ad
 			</div>
 		</div>

@@ -18,7 +18,7 @@ export function NavbarComponent() {
 	}, [])
 	return (
 		<div>
-			<div className="bg-base-200 navbar">
+			<div className="bg-base-300 navbar">
 				<div className="flex-1 pl-5">
 					<h1 className="text-2xl mt-1 font-[balooTamma] text-[#75767c]">
 						DNS Changer

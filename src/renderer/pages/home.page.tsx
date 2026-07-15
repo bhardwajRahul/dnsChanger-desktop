@@ -73,10 +73,7 @@ export function HomePage() {
 						<ConnectButtonComponent />
 					</div>
 
-					{/* Action Buttons */}
-
-					{/* Right Content */}
-					<div className="relative flex flex-col gap-3 px-1 ml-auto w-96">
+					<div className="relative flex flex-col gap-2 px-1 ml-auto w-96">
 						<div className="flex absolute -left-12 -top-5 flex-col gap-2 pt-18.5">
 							<AddCustomDnsButton />
 

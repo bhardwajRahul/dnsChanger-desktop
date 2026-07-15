@@ -79,7 +79,7 @@ export function ConnectButtonComponent() {
 				disabled={loading}
 				aria-label={statusText}
 				className={cn(
-					'flex h-32 w-32 items-center justify-center rounded-full  outline-8 -outline-offset-2 transition-all duration-300 active:scale-95 disabled:pointer-events-none disabled:cursor-not-allowed',
+					'flex h-32 cursor-pointer w-32 items-center justify-center rounded-full  outline-8 -outline-offset-2 transition-all duration-300 active:scale-95 disabled:pointer-events-none disabled:cursor-not-allowed',
 					loading &&
 						'cursor-wait bg-base-300 text-base-content outline-base-300/40',
 					!loading &&
