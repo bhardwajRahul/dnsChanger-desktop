@@ -1,21 +1,32 @@
 import { IoClose } from 'react-icons/io5'
 import { VscChromeMinimize } from 'react-icons/vsc'
-import { BsDiscord, BsGithub } from 'react-icons/bs'
-
-import { useEffect, useState } from 'react'
-import { FiWifiOff } from 'react-icons/fi'
+import { BsDiscord, BsGiftFill, BsGithub } from 'react-icons/bs'
 import { Button } from '../button/button'
+import Tooltip from '../tooltip/toolTip'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { UrlsConstant } from '../../../shared/constants/urls.constant'
 
 export function NavbarComponent() {
-	const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine)
+	const [ad, setAd] = useState<string | null>(null)
 	useEffect(() => {
-		window.addEventListener('offline', function (e) {
-			setIsOnline(false)
-		})
-		window.addEventListener('online', function (e) {
-			setIsOnline(true)
-		})
+		async function fetchAd() {
+			try {
+				const response = await axios.get(
+					`${UrlsConstant.DONATE_STORE}?t=${Date.now()}`
+				)
+				if (!response.data) {
+					setAd(null)
+				} else {
+					setAd(response.data.url)
+				}
+			} finally {
+			}
+		}
+
+		fetchAd()
 	}, [])
+
 	return (
 		<div>
 			<div className="bg-base-300 navbar">
@@ -63,6 +74,17 @@ export function NavbarComponent() {
 						>
 							<BsGithub />
 						</Button>
+						{ad ? (
+							<Tooltip content="Donate Us">
+								<Button
+									className="text-[#616161] hover:text-current btn-ghost rounded-lg"
+									size="xs"
+									onClick={() => window.ipc.openBrowser(ad)}
+								>
+									<BsGiftFill />
+								</Button>
+							</Tooltip>
+						) : null}
 					</div>
 				</div>
 			</div>

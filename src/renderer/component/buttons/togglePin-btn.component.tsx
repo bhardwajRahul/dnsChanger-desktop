@@ -28,7 +28,7 @@ export function ToggleButtonComponent() {
 	}
 
 	return (
-		<Button size={'sm'} className={'btn-ghost rounded-lg'} onClick={handleClick}>
+		<Button size={'sm'} className={'btn-ghost rounded-xl'} onClick={handleClick}>
 			{isPin ? <BsPinFill size={12} /> : <BsPin size={12} />}
 		</Button>
 	)

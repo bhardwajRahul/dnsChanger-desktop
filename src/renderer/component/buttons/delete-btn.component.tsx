@@ -32,7 +32,7 @@ export function DeleteButtonComponent() {
 	if (!server) return null
 	return (
 		<>
-			<Button size={'sm'} className={'btn-ghost rounded-lg'} onClick={handleOpen}>
+			<Button size={'sm'} className={'btn-ghost rounded-xl'} onClick={handleOpen}>
 				<AiOutlineDelete
 					className={'dark:text-gray-600 text-gray-800'}
 					size={12}
