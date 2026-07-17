@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ServerStore } from '../../shared/interfaces/server.interface'
 
 import { AddCustomDnsButton } from '../component/buttons/addDns-btn.component'
+import { BenchmarkDnsButtonComponent } from '../component/buttons/benchmark-dns-btn.component'
 import { ConnectButtonComponent } from '../component/buttons/connect-btn.component'
 import { FlushDNS_BtnComponent } from '../component/buttons/flush-dns-btn-component'
 import { InterfacesDialogButtonComponent } from '../component/buttons/interfaces-dialog-btn-component'
@@ -80,6 +81,8 @@ export function HomePage() {
 							{osType === 'win32' && <InterfacesDialogButtonComponent />}
 
 							<FlushDNS_BtnComponent />
+
+							<BenchmarkDnsButtonComponent servers={serversState} />
 						</div>
 						<ServersListSelectComponent />
 

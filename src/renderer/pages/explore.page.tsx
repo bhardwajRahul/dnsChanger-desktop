@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
+import type React from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	IoAddCircleOutline,
+	IoAlertCircleOutline,
+	IoCheckmarkCircleOutline,
+	IoCloseCircle,
 	IoReload,
 	IoRemoveCircleOutline,
 	IoSearch,
 } from 'react-icons/io5'
 
-import { Server } from '../../shared/interfaces/server.interface'
+import type { Server } from '../../shared/interfaces/server.interface'
 
 import { FiCopy } from 'react-icons/fi'
 import { CiCircleMore } from 'react-icons/ci'
@@ -15,51 +18,108 @@ import { FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { getPingIcon } from '../utils/icons.util'
 import { TextInput } from '../component/input/text-input'
 import { Button } from '../component/button/button'
+import { BenchmarkDnsButtonComponent } from '../component/buttons/benchmark-dns-btn.component'
 import { useGetDnsList } from '../hook/fetch-dns'
+
+const PING_CACHE_TTL = 60 * 1000
+
+type PingCacheEntry = { ping: number; timestamp: number }
 
 export function ExplorePage() {
 	const [servers, setServers] = useState<Server[]>([])
-
 	const [installedServers, setInstalledServers] = useState<Server[]>([])
-
 	const [search, setSearch] = useState('')
-	const { data: fetchedDnsList, refetch } = useGetDnsList()
-	const [isLoading, setIsLoading] = useState(true)
-	async function updateServers() {
-		const list = fetchedDnsList || []
-		const result = await Promise.all(
-			list.map(async (server) => {
-				const response = await window.ipc.ping(server)
+	const [isPinging, setIsPinging] = useState(false)
+	const [loadError, setLoadError] = useState<string | null>(null)
 
-				server.ping = Number(response.data.time) || -1
+	const {
+		data: fetchedDnsList,
+		refetch,
+		isLoading: isListLoading,
+		isFetching: isListFetching,
+		isError: isListError,
+	} = useGetDnsList()
 
-				return server
-			})
-		)
+	const pingCache = useRef<Map<string, PingCacheEntry>>(new Map())
 
-		result.sort((a, b) => (a.ping === -1 ? 1 : b.ping === -1 ? -1 : a.ping - b.ping))
+	const requestIdRef = useRef(0)
 
-		setServers(result)
-	}
+	const pingServer = useCallback(async (server: Server): Promise<Server> => {
+		const cached = pingCache.current.get(server.key)
+		const now = Date.now()
 
-	async function fetchCurrentDnsList() {
-		try {
-			setServers([])
-
-			const response = await window.ipc.fetchDnsList()
-
-			setInstalledServers(response.servers)
-
-			await updateServers()
-		} finally {
-			setIsLoading(false)
+		if (cached && now - cached.timestamp < PING_CACHE_TTL) {
+			return { ...server, ping: cached.ping }
 		}
-	}
+
+		try {
+			const response = await window.ipc.ping(server)
+			const ping = Number(response?.data?.time) || -1
+
+			pingCache.current.set(server.key, { ping, timestamp: now })
+
+			return { ...server, ping }
+		} catch {
+			pingCache.current.set(server.key, { ping: -1, timestamp: now })
+
+			return { ...server, ping: -1 }
+		}
+	}, [])
+
+	const updateServers = useCallback(
+		async (list: Server[], requestId: number) => {
+			setIsPinging(true)
+
+			try {
+				const result = await Promise.all(list.map((server) => pingServer(server)))
+
+				if (requestId !== requestIdRef.current) return
+
+				result.sort((a, b) =>
+					a.ping === -1 ? 1 : b.ping === -1 ? -1 : a.ping - b.ping
+				)
+
+				setServers(result)
+			} finally {
+				if (requestId === requestIdRef.current) setIsPinging(false)
+			}
+		},
+		[pingServer]
+	)
+
+	const fetchCurrentDnsList = useCallback(
+		async (list: Server[]) => {
+			const requestId = ++requestIdRef.current
+			setLoadError(null)
+
+			try {
+				const response = await window.ipc.fetchDnsList()
+
+				if (requestId !== requestIdRef.current) return
+
+				setInstalledServers(response.servers)
+				await updateServers(list, requestId)
+			} catch {
+				if (requestId === requestIdRef.current) {
+					setLoadError('Failed to retrieve the list of installed servers.')
+				}
+			}
+		},
+		[updateServers]
+	)
 
 	useEffect(() => {
-		if (fetchedDnsList?.length) fetchCurrentDnsList()
-		else if (isLoading) setIsLoading(false)
-	}, [fetchedDnsList])
+		if (!fetchedDnsList) return
+
+		if (fetchedDnsList.length > 0) {
+			fetchCurrentDnsList(fetchedDnsList)
+		} else {
+			setServers([])
+		}
+	}, [fetchedDnsList, fetchCurrentDnsList])
+
+	const isInitialLoading = isListLoading && servers.length === 0
+	const isBackgroundRefreshing = (isListFetching || isPinging) && !isInitialLoading
 
 	const filteredServers = useMemo(() => {
 		if (!search.trim()) {
@@ -79,55 +139,122 @@ export function ExplorePage() {
 	return (
 		<div className="flex flex-col h-96">
 			<div className="px-5 py-2 border-b border-base-300">
-				<div className="flex items-center justify-between gap-3 ">
-					<div className="">
+				<div className="flex items-center justify-between gap-3">
+					<div className="relative flex-1">
+						<IoSearch
+							size={15}
+							className="absolute -translate-y-1/2 pointer-events-none left-3 top-1/2 text-base-content/40"
+						/>
 						<TextInput
 							type="text"
-							className=""
+							className="pl-8 pr-8"
 							placeholder="Search DNS..."
 							value={search}
 							onChange={(value) => setSearch(value)}
-							disabled={isLoading}
+							disabled={isInitialLoading}
 						/>
+						{search && (
+							<button
+								onClick={() => setSearch('')}
+								className="absolute -translate-y-1/2 right-2 top-1/2 text-base-content/40 hover:text-base-content"
+								aria-label="Clear search"
+							>
+								<IoCloseCircle size={16} />
+							</button>
+						)}
 					</div>
 
 					<Button
 						size="sm"
 						className="btn-ghost rounded-xl"
-						loading={isLoading}
+						loading={isInitialLoading || isBackgroundRefreshing}
 						onClick={() => refetch()}
 					>
 						<IoReload size={18} />
 					</Button>
+
+					<BenchmarkDnsButtonComponent servers={filteredServers} />
 				</div>
 
 				<div className="flex items-center justify-between mt-3 text-sm text-base-content/60">
-					<span>{filteredServers.length} DNS Servers</span>
+					<span>
+						{filteredServers.length} DNS Servers
+						{isBackgroundRefreshing && (
+							<span className="ml-2 text-xs animate-pulse text-base-content/40">
+								Updating...
+							</span>
+						)}
+					</span>
 
-					{search && <span>Filtered from {fetchedDnsList?.length || 0}</span>}
+					{search && <span>Filtered from {servers.length}</span>}
 				</div>
 			</div>
 
 			<div className="flex-1 px-5 py-2 overflow-auto">
 				<div className="flex flex-col gap-1 pb-10">
-					{isLoading &&
-						Array.from({
-							length: 5,
-						}).map((_, index) => (
-							<div key={index} className="h-14 skeleton rounded-2xl " />
-						))}
-
-					{!isLoading && filteredServers.length === 0 && (
-						<div className="py-10 text-center border rounded-2xl border-base-300 bg-base-200">
-							<h2 className="font-medium">No DNS Servers</h2>
-
-							<p className="mt-1 text-sm text-base-content/60">
-								No server matches your search.
-							</p>
+					{loadError && !isInitialLoading && (
+						<div className="flex items-center justify-between gap-3 p-3 mb-1 text-sm border rounded-2xl border-error/30 bg-error/10 text-error">
+							<div className="flex items-center gap-2">
+								<IoAlertCircleOutline size={18} className="shrink-0" />
+								<span>{loadError}</span>
+							</div>
+							<button
+								onClick={() =>
+									fetchedDnsList && fetchCurrentDnsList(fetchedDnsList)
+								}
+								className="font-medium underline whitespace-nowrap"
+							>
+								Retry
+							</button>
 						</div>
 					)}
 
-					{!isLoading &&
+					{isListError && (
+						<div className="flex items-center justify-between gap-3 p-3 mb-1 text-sm border rounded-2xl border-error/30 bg-error/10 text-error">
+							<div className="flex items-center gap-2">
+								<IoAlertCircleOutline size={18} className="shrink-0" />
+								<span>Failed to fetch the DNS list from the server.</span>
+							</div>
+							<button
+								onClick={() => refetch()}
+								className="font-medium underline whitespace-nowrap"
+							>
+								Retry
+							</button>
+						</div>
+					)}
+
+					{isInitialLoading &&
+						Array.from({
+							length: 5,
+						}).map((_, index) => (
+							<div key={index} className="h-14 skeleton rounded-2xl" />
+						))}
+
+					{!isInitialLoading &&
+						!isListError &&
+						filteredServers.length === 0 && (
+							<div className="py-10 text-center border rounded-2xl border-base-300 bg-base-200">
+								<h2 className="font-medium">No DNS Servers</h2>
+
+								<p className="mt-1 text-sm text-base-content/60">
+									{search
+										? 'No server matches your search.'
+										: 'No DNS servers available right now.'}
+								</p>
+
+								{search && (
+									<button
+										onClick={() => setSearch('')}
+										className="mt-2 text-sm font-medium text-primary hover:underline"
+									>
+										Clear search
+									</button>
+								)}
+							</div>
+						)}
+
+					{!isInitialLoading &&
 						filteredServers.map((server) => (
 							<ServerCard
 								key={server.key}
@@ -152,21 +279,63 @@ export function ServerCard({ server, storeServers, setStoreServers }: ServerCard
 	const { avatar, name, key, tags, servers, rate, ping } = server
 
 	const [menuOpen, setMenuOpen] = useState(false)
+	const [actionLoading, setActionLoading] = useState(false)
+	const [actionError, setActionError] = useState(false)
+	const [copied, setCopied] = useState(false)
 
 	const isInstalled = storeServers.some((item) => item.key === key)
 
+	useEffect(() => {
+		if (!menuOpen) return
+
+		function handleKey(e: KeyboardEvent) {
+			if (e.key === 'Escape') setMenuOpen(false)
+		}
+
+		window.addEventListener('keydown', handleKey)
+		return () => window.removeEventListener('keydown', handleKey)
+	}, [menuOpen])
+
 	async function addHandler() {
-		const response = await window.ipc.addDns(server)
-		if (response.success) {
-			setStoreServers(response.servers)
+		setActionLoading(true)
+		setActionError(false)
+
+		try {
+			const response = await window.ipc.addDns(server)
+			if (response.success) {
+				setStoreServers(response.servers)
+			} else {
+				setActionError(true)
+			}
+		} catch {
+			setActionError(true)
+		} finally {
+			setActionLoading(false)
 		}
 	}
 
 	async function deleteHandler() {
-		const response = await window.ipc.deleteDns(server)
-		if (response.success) {
-			setStoreServers(response.servers)
+		setActionLoading(true)
+		setActionError(false)
+
+		try {
+			const response = await window.ipc.deleteDns(server)
+			if (response.success) {
+				setStoreServers(response.servers)
+			} else {
+				setActionError(true)
+			}
+		} catch {
+			setActionError(true)
+		} finally {
+			setActionLoading(false)
 		}
+	}
+
+	function copyHandler() {
+		navigator.clipboard.writeText(servers.join(', '))
+		setCopied(true)
+		setTimeout(() => setCopied(false), 1500)
 	}
 
 	function renderRating(value: number) {
@@ -177,30 +346,22 @@ export function ServerCard({ server, storeServers, setStoreServers }: ServerCard
 
 		for (let i = 0; i < 5; i++) {
 			if (i < full) {
-				stars.push(<FaStar key={i} className="text-yellow-400" size={12} />)
+				stars.push(<FaStar key={i} className="text-warning" size={12} />)
 			} else if (i === full && half) {
-				stars.push(
-					<FaStarHalfAlt key={i} className="text-yellow-400" size={12} />
-				)
+				stars.push(<FaStarHalfAlt key={i} className="text-warning" size={12} />)
 			} else {
-				stars.push(
-					<FaRegStar
-						key={i}
-						className="text-gray-300 dark:text-gray-600"
-						size={12}
-					/>
-				)
+				stars.push(<FaRegStar key={i} className="text-base-300" size={12} />)
 			}
 		}
 		return stars
 	}
 
 	return (
-		<div className="relative transition-all duration-200 border group rounded-xl bg-base-200 border-base-300 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md hover:shadow-blue-500/5">
+		<div className="relative transition-all duration-200 border group rounded-xl bg-base-200 border-base-300 hover:border-primary hover:shadow-md hover:shadow-primary/5">
 			<div className="p-3">
 				<div className="flex items-center gap-3">
-					<div className="flex-shrink-0">
-						<div className="w-10 h-10 overflow-hidden bg-gray-100 rounded-lg ">
+					<div className="shrink-0">
+						<div className="w-10 h-10 overflow-hidden rounded-lg bg-base-300">
 							<img
 								src={`./servers-icon/${avatar}`}
 								alt={name}
@@ -213,61 +374,68 @@ export function ServerCard({ server, storeServers, setStoreServers }: ServerCard
 						</div>
 					</div>
 
-					{/* Content */}
 					<div className="flex-1 min-w-0">
 						<div className="flex items-center gap-2">
-							<h3 className="text-sm font-semibold text-gray-900 truncate dark:text-gray-100">
+							<h3 className="text-sm font-semibold truncate text-base-content">
 								{name}
 							</h3>
 
-							<div className="flex flex-wrap flex-shrink-0 gap-1">
+							<div className="flex flex-wrap gap-1 shrink-0">
 								{tags.slice(0, 3).map((tag) => (
 									<span
 										key={tag}
-										className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 whitespace-nowrap"
+										className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-base-300 text-base-content/70 whitespace-nowrap"
 									>
 										{tag}
 									</span>
 								))}
 								{tags.length > 3 && (
-									<span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+									<span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-base-300 text-base-content/50">
 										+{tags.length - 3}
 									</span>
 								)}
 							</div>
 
-							{/* Ping - عقب تر */}
-							<div className="flex items-center flex-shrink-0 gap-1 ml-auto">
-								<span className="flex-shrink-0">{getPingIcon(ping)}</span>
-								<span className="text-xs text-gray-500 dark:text-gray-400">
+							<div className="flex items-center gap-1 ml-auto shrink-0">
+								<span className="shrink-0">{getPingIcon(ping)}</span>
+								<span className="text-xs text-base-content/50">
 									{ping === -1 ? 'N/A' : `${ping}ms`}
 								</span>
 							</div>
 
-							{/* Menu Button */}
 							<button
 								onClick={() => setMenuOpen(!menuOpen)}
-								className="flex-shrink-0 p-1 text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300"
+								className="p-1 transition-colors rounded-md shrink-0 text-base-content/40 hover:bg-base-300 hover:text-base-content"
+								aria-label="More options"
 							>
 								<CiCircleMore size={18} />
 							</button>
 						</div>
 
-						{/* Footer - ریتینگ و دکمه Add/Remove */}
-						<div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-gray-100 dark:border-gray-700/50">
-							<div className="flex items-center gap-1">
-								{renderRating(rate)}
+						<div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-base-300">
+							<div className="flex items-center gap-2">
+								<div className="flex items-center gap-1">
+									{renderRating(rate)}
+								</div>
+								{actionError && (
+									<span className="text-[10px] text-error">
+										Failed to complete the operation.
+									</span>
+								)}
 							</div>
 
 							<button
 								onClick={isInstalled ? deleteHandler : addHandler}
-								className={`flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium rounded-lg transition-all ${
+								disabled={actionLoading}
+								className={`flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 ${
 									isInstalled
-										? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-										: 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+										? 'text-error hover:bg-error/10'
+										: 'text-primary hover:bg-primary/10'
 								}`}
 							>
-								{isInstalled ? (
+								{actionLoading ? (
+									<span className="loading loading-spinner loading-xs" />
+								) : isInstalled ? (
 									<IoRemoveCircleOutline size={14} />
 								) : (
 									<IoAddCircleOutline size={14} />
@@ -286,29 +454,33 @@ export function ServerCard({ server, storeServers, setStoreServers }: ServerCard
 						className="fixed inset-0 z-10"
 						onClick={() => setMenuOpen(false)}
 					/>
-					<div className="absolute right-2 top-11 z-20 w-64 p-2 bg-white dark:bg-[#272727] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+					<div className="absolute z-20 w-64 p-2 border shadow-lg right-2 top-11 rounded-xl bg-base-100 border-base-300">
 						{/* Copy DNS */}
 						<button
-							onClick={() => {
-								navigator.clipboard.writeText(servers.join(', '))
-								setMenuOpen(false)
-							}}
-							className="flex items-center w-full gap-2 px-3 py-2 text-sm text-gray-700 transition-colors rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+							onClick={copyHandler}
+							className="flex items-center w-full gap-2 px-3 py-2 text-sm transition-colors rounded-lg text-base-content hover:bg-base-200"
 						>
-							<FiCopy size={15} className="flex-shrink-0" />
-							<span>Copy DNS Addresses</span>
+							{copied ? (
+								<IoCheckmarkCircleOutline
+									size={15}
+									className="shrink-0 text-success"
+								/>
+							) : (
+								<FiCopy size={15} className="shrink-0" />
+							)}
+							<span>{copied ? 'Copied!' : 'Copy DNS Addresses'}</span>
 						</button>
 
 						{/* DNS Servers List */}
-						<div className="px-3 py-2 mt-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-							<div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-400">
+						<div className="px-3 py-2 mt-2 rounded-lg bg-base-200">
+							<div className="text-[10px] font-medium uppercase text-base-content/50">
 								DNS Servers
 							</div>
 							<div className="mt-1 space-y-0.5">
 								{servers.map((address) => (
 									<div
 										key={address}
-										className="font-mono text-xs text-gray-600 truncate dark:text-gray-300"
+										className="font-mono text-xs truncate text-base-content/70"
 									>
 										{address}
 									</div>
@@ -318,14 +490,14 @@ export function ServerCard({ server, storeServers, setStoreServers }: ServerCard
 
 						{/* Rating */}
 						<div className="flex items-center justify-between px-3 py-2 mt-2">
-							<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+							<span className="text-xs font-medium text-base-content/50">
 								Rating
 							</span>
 							<div className="flex items-center gap-1.5">
 								<div className="flex items-center gap-0.5">
 									{renderRating(rate)}
 								</div>
-								<span className="text-xs text-gray-500 dark:text-gray-400">
+								<span className="text-xs text-base-content/50">
 									{(rate / 2).toFixed(1)}
 								</span>
 							</div>
