@@ -28,9 +28,9 @@ win:
   publish:
     - github
   target:
-    # - zip
+    - zip
     - msi
-    # - nsis
+    - nsis
 linux:
   icon: 'public/icons/icon.icns'
   maintainer: 'dnschanger.github.io'
