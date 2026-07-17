@@ -1,5 +1,10 @@
 # Changelog
 
+# v2.3.7
+- Refactor/UI and codebase overhaul by @sajjadmrx in https://github.com/DnsChanger/dnsChanger-desktop/pull/211
+-  feat: add target benchmark and ping testing for DNS servers by @sajjadmrx [#198](https://github.com/DnsChanger/dnsChanger-desktop/issues/198)
+
+
 # v2.3.6
 - removed wmic - fixed [#123](https://github.com/DnsChanger/dnsChanger-desktop/issues/123)
 
