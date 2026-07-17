@@ -21,10 +21,10 @@
     "preview": "vite preview",
     "pree2e": "vite build --mode=test",
     "e2e": "playwright test",
-    "publish:linux": "tsc && vite build && electron-builder --linux -p always",
-    "publish:win": "tsc && vite build && electron-builder --win -p always",
-    "publish:auto": "tsc && vite build && electron-builder -p always",
-    "publish:mac": "tsc && vite build && electron-builder --mac  -p always"
+    "publish:linux": "vite build && electron-builder --linux -p always",
+    "publish:win": "vite build && electron-builder --win -p always",
+    "publish:auto": "vite build && electron-builder -p always",
+    "publish:mac": "vite build && electron-builder --mac  -p always"
   },
   "keywords": [],
   "author": {
