@@ -8,6 +8,7 @@ import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 // @ts-ignore
 import pkg from './package.json'
+import tailwindcss from '@tailwindcss/vite'   // <-- add this import
 
 process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL
 	? path.join(process.env.DIST_ELECTRON, '../public')
@@ -28,6 +29,7 @@ export default defineConfig(({ command }) => {
 		},
 		plugins: [
 			react(),
+			  tailwindcss(), 
 			electron([
 				{
 					// Main-Process entry file of the Electron App.

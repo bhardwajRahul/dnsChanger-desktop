@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Button, Tooltip } from 'react-daisyui'
 import { FaBroom } from 'react-icons/fa'
 import { appNotif } from '../../notifications/appNotif'
+import Tooltip from '../tooltip/toolTip'
+import { Button } from '../button/button'
 
 export function FlushDNS_BtnComponent() {
 	const [loading, setLoading] = useState<boolean>(false)
@@ -20,19 +21,16 @@ export function FlushDNS_BtnComponent() {
 
 	return (
 		<div>
-			<Tooltip message="Flush DNS" position="top">
+			<Tooltip content="Flush DNS" position="left">
 				<Button
-					shape={'square'}
 					size={'sm'}
 					onClick={handleClick}
 					disabled={loading}
-					className={
-						'bg-base-200 hover:bg-[#d3d2d2] dark:bg-[#262626] hover:dark:bg-[#323232]  border-none text-center transition-all duration-300 ease-in-out'
-					}
+					className={'bg-base-200 hover:bg-base-200/80 rounded-xl'}
 				>
 					<FaBroom
-						className={`dark:text-gray-600 text-gray-700  ${loading ? 'animate-pulse' : ''}`}
-						size={16}
+						className={`text-base-content/80 ${loading ? 'animate-pulse' : ''}`}
+						size={14}
 					/>
 				</Button>
 			</Tooltip>

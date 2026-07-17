@@ -1,8 +1,9 @@
 import { useContext, useState } from 'react'
-import { Button, Tooltip } from 'react-daisyui'
 import { MdOutlineAddModerator } from 'react-icons/md'
 import { serversContext } from '../../context/servers.context'
 import { AddDnsModalComponent } from '../modals/add-dns.component'
+import Tooltip from '../tooltip/toolTip'
+import { Button } from '../button/button'
 
 export function AddCustomDnsButton() {
 	const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
@@ -14,19 +15,13 @@ export function AddCustomDnsButton() {
 
 	return (
 		<div>
-			<Tooltip message="Add Custom DNS" position="top">
+			<Tooltip content="Add Custom DNS" position="left">
 				<Button
-					shape={'square'}
 					size={'sm'}
 					onClick={toggleOpenModal}
-					className={
-						'bg-base-200 hover:bg-[#d3d2d2] dark:bg-[#262626] hover:dark:bg-[#323232]  border-none text-center transition-all duration-300 ease-in-out'
-					}
+					className={'bg-base-200 hover:bg-base-200/80 rounded-xl'}
 				>
-					<MdOutlineAddModerator
-						className={'dark:text-gray-600 text-gray-700'}
-						size={16}
-					/>
+					<MdOutlineAddModerator className="text-base-content/80" size={14} />
 				</Button>
 				<AddDnsModalComponent
 					isOpen={isOpenModal}

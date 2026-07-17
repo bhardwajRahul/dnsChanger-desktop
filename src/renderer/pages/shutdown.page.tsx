@@ -1,8 +1,9 @@
-import { Button, Input, Typography } from '@material-tailwind/react'
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import { BsClock, BsPower } from 'react-icons/bs'
 import { MdClear } from 'react-icons/md'
+import { FiInfo } from 'react-icons/fi'
+import { Button } from '../component/button/button'
 
 export function ShutdownPage() {
 	const [scheduledTime, setScheduledTime] = useState('')
@@ -43,7 +44,6 @@ export function ShutdownPage() {
 
 			toast.success('Shutdown scheduled successfully!')
 
-			// Reset to +1 hour
 			const futureTime = new Date(now.getTime() + 60 * 60 * 1000)
 			setScheduledDate(futureTime.toISOString().split('T')[0])
 			setScheduledTime(futureTime.toTimeString().slice(0, 5))
@@ -69,113 +69,124 @@ export function ShutdownPage() {
 	}
 
 	return (
-		<div className="p-4">
-			<div className="flex flex-col h-full gap-4">
-				{/* Header */}
-				<div className="flex items-center gap-3">
-					<div className="p-3 bg-red-100 rounded-full dark:bg-red-900/20">
-						<BsPower className="text-2xl text-red-500" />
-					</div>
-					<div>
-						<Typography
-							variant="h5"
-							className="text-gray-800 dark:text-white font-[balooTamma]"
-						>
-							Shutdown Control
-						</Typography>
-						<Typography className="text-sm text-gray-600 dark:text-gray-400 font-[Inter]">
-							Schedule or clear shutdown operations
-						</Typography>
-					</div>
+		<div className="p-2 overflow-y-auto">
+			{/* Header */}
+			<div className="flex items-center gap-3 mb-5">
+				<div className="p-2 rounded-lg bg-error/20">
+					<BsPower className="text-xl text-error" />
 				</div>
-
-				<div className="flex flex-row gap-2">
-					{/* Schedule Section */}
-					<div className="flex-1  dark:bg-[#262626] bg-base-200 shadow p-4 rounded-lg w-full">
-						<Typography
-							variant="h6"
-							className="mb-3 text-gray-800 dark:text-white font-[balooTamma]"
-						>
-							Schedule Shutdown
-						</Typography>{' '}
-						<div className="flex flex-col gap-3 mb-3">
-							<div>
-								<Typography className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300 font-[Inter]">
-									Date
-								</Typography>
-								<Input
-									type="date"
-									value={scheduledDate}
-									onChange={(e) => setScheduledDate(e.target.value)}
-									className="w-full dark:text-gray-300 font-[Inter]"
-									crossOrigin={undefined}
-								/>
-							</div>
-							<div>
-								<Typography className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300 font-[Inter]">
-									Time
-								</Typography>
-								<Input
-									type="time"
-									value={scheduledTime}
-									onChange={(e) => setScheduledTime(e.target.value)}
-									className="w-full dark:text-gray-300 font-[Inter]"
-									crossOrigin={undefined}
-								/>
-							</div>
-						</div>
-						<Button
-							onClick={handleScheduleShutdown}
-							disabled={loading}
-							className="flex items-center justify-center w-full py-2 bg-red-500 hover:bg-red-600 font-[Inter] normal-case text-sm font-normal"
-						>
-							{loading ? (
-								<div className="flex items-center justify-center">
-									<div className="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-									Scheduling...
-								</div>
-							) : (
-								<div className="flex items-center justify-center gap-2">
-									<BsClock size={16} />
-									Schedule Shutdown
-								</div>
-							)}
-						</Button>
-					</div>
-
-					{/* Clear All Section */}
-					<div className="dark:bg-[#262626] bg-base-200 shadow p-4 rounded-lg">
-						<Typography
-							variant="h6"
-							className="mb-3 text-gray-800 dark:text-white font-[balooTamma]"
-						>
-							Clear All Shutdowns
-						</Typography>
-
-						<Typography className="mb-3 text-sm text-gray-600 dark:text-gray-400 font-[Inter]">
-							Cancel all scheduled shutdown operations
-						</Typography>
-
-						<Button
-							onClick={handleClearAllShutdowns}
-							disabled={clearingAll}
-							className="flex items-center justify-center w-full py-2 bg-gray-500 hover:bg-gray-600 font-[Inter] normal-case text-sm font-normal"
-						>
-							{clearingAll ? (
-								<div className="flex items-center justify-center">
-									<div className="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-									Clearing...
-								</div>
-							) : (
-								<div className="flex items-center justify-center gap-2">
-									<MdClear size={16} />
-									Clear All Shutdowns
-								</div>
-							)}
-						</Button>
-					</div>
+				<div>
+					<h1 className="text-xl font-semibold text-base-content font-[balooTamma]">
+						Shutdown Control
+					</h1>
+					<p className="text-xs text-base-content/70 font-[Inter]">
+						Schedule or clear system shutdown operations
+					</p>
 				</div>
 			</div>
+			<div className="grid grid-cols-2 gap-4">
+				<div className="p-3 transition-all border bg-base-100 rounded-xl border-base-300">
+					<div className="flex items-center gap-2 mb-3">
+						<BsClock className="text-error" size={16} />
+						<h2 className="text-sm font-semibold text-base-content font-[balooTamma]">
+							Schedule Shutdown
+						</h2>
+					</div>
+
+					<div className="space-y-3">
+						<div>
+							<label className="block mb-1 text-xs font-medium text-base-content/70">
+								Date
+							</label>
+							<input
+								type="date"
+								value={scheduledDate}
+								onChange={(e) => setScheduledDate(e.target.value)}
+								className="w-full px-3 py-1.5 text-sm text-base-content transition-all bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-error focus:border-error"
+								min={new Date().toISOString().split('T')[0]}
+							/>
+						</div>
+
+						<div>
+							<label className="block mb-1 text-xs font-medium text-base-content/70">
+								Time
+							</label>
+							<input
+								type="time"
+								value={scheduledTime}
+								onChange={(e) => setScheduledTime(e.target.value)}
+								className="w-full px-3 py-1.5 text-sm text-base-content transition-all bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-error focus:border-error"
+							/>
+						</div>
+
+						<Button
+							size="sm"
+							onClick={handleScheduleShutdown}
+							disabled={loading}
+							className="flex items-center justify-center w-full py-2 text-xs font-medium transition-all duration-200 rounded-lg btn-error hover:bg-error/90 disabled:bg-error/50"
+						>
+							{loading ? (
+								<>
+									<div className="w-3.5 h-3.5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+									Scheduling...
+								</>
+							) : (
+								<>
+									<BsClock className="mr-1.5" size={14} />
+									Schedule Shutdown
+								</>
+							)}
+						</Button>
+					</div>
+				</div>
+
+				{/* Clear All Card */}
+				<div className="flex flex-col p-3 transition-all border bg-base-100 rounded-xl border-base-300">
+					<div className="flex items-center gap-2 mb-3">
+						<MdClear className="text-base-content/60" size={16} />
+						<h2 className="text-sm font-semibold text-base-content font-[balooTamma]">
+							Clear All
+						</h2>
+					</div>
+
+					<p className="text-xs text-base-content/70 font-[Inter] flex-1">
+						Cancel all scheduled shutdown operations. This will remove any
+						pending shutdown tasks from the system.
+					</p>
+
+					<Button
+						size="sm"
+						onClick={handleClearAllShutdowns}
+						disabled={clearingAll}
+						className="flex items-center justify-center w-full py-2 mt-3 text-xs font-medium transition-all duration-200 rounded-lg bg-base-400 hover:bg-base-500 disabled:bg-base-300"
+					>
+						{clearingAll ? (
+							<>
+								<div className="w-3.5 h-3.5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+								Clearing...
+							</>
+						) : (
+							<>
+								<MdClear className="mr-1.5" size={14} />
+								Clear All Shutdowns
+							</>
+						)}
+					</Button>
+				</div>
+			</div>
+			{/* Info Section
+			<div className="flex items-start gap-2.5 p-3 mt-1 rounded-lg bg-info/20 text-info-content border border-info/30">
+				<FiInfo className="w-4 h-4 text-info mt-0.5 flex-shrink-0" />
+				<div>
+					<p className="text-xs font-medium text-info-content">
+						Important Note
+					</p>
+					<p className="text-[11px] text-info-content/80 mt-0.5">
+						Scheduled shutdown will execute at the specified date and time.
+						Make sure to save your work before the shutdown time.
+					</p>
+				</div>
+			</div> */}
 		</div>
 	)
 }

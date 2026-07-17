@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from 'react'
-import { Button as ButtonDaisyui } from 'react-daisyui'
 
 import { serversContext } from '../../context/servers.context'
-import { ServersContext } from '../../interfaces/servers-context.interface'
+import type { ServersContext } from '../../interfaces/servers-context.interface'
 import { BsPin, BsPinFill } from 'react-icons/bs'
+import { Button } from '../button/button'
 
 export function ToggleButtonComponent() {
 	const serversStateContext = useContext<ServersContext>(serversContext)
@@ -11,13 +11,13 @@ export function ToggleButtonComponent() {
 	const [isPin, setIsPin] = useState<boolean>()
 
 	useEffect(() => {
-		if (serversStateContext.selected)
-			setIsPin(serversStateContext.selected.isPin)
+		if (serversStateContext.selected) setIsPin(serversStateContext.selected.isPin)
 	}, [serversStateContext.selected])
 
 	if (!server) return null
 
 	async function handleClick() {
+		if (!server) return
 		const res = await window.ipc.togglePinServer(server)
 		if (res.success) {
 			server.isPin = !server.isPin
@@ -28,21 +28,8 @@ export function ToggleButtonComponent() {
 	}
 
 	return (
-		<>
-			<ButtonDaisyui
-				shape={'circle'}
-				size={'sm'}
-				className={
-					'dark:bg-[#262626] bg-base-200 hover:bg-[#c4c4c4] hover:dark:bg-[#323232] border-none text-center'
-				}
-				onClick={handleClick}
-			>
-				{isPin ? (
-					<BsPinFill className={'dark:text-gray-600 text-gray-800'} size={16} />
-				) : (
-					<BsPin className={'dark:text-gray-600 text-gray-800'} size={16} />
-				)}
-			</ButtonDaisyui>
-		</>
+		<Button size={'sm'} className={'btn-ghost rounded-xl'} onClick={handleClick}>
+			{isPin ? <BsPinFill size={12} /> : <BsPin size={12} />}
+		</Button>
 	)
 }

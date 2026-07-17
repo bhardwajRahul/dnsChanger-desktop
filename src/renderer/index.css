@@ -1,6 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
+
+
+:root {
+	--brand-primary: #7284FA;
+	--brand-primary-rgb: 83, 109, 254;
+	--brand-secondary: rgb(95, 108, 185);
+	--brand-secondary-rgb: 124, 141, 240;
+}
 
 @font-face {
 	font-family: Inter;
@@ -73,13 +80,7 @@ html[data-theme="dark"]::-webkit-scrollbar {
 	}
 }
 
-html.dark {
-	background-color: #212121;
-}
 
-html.light {
-	background-color: #e6e6e6;
-}
 
 html.dark .btm-nav {
 	background-color: #262626;

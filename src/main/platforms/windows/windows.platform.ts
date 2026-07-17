@@ -1,6 +1,7 @@
 import * as os from 'node:os'
 import { exec } from 'node:child_process'
-import * as sudo from 'sudo-prompt'
+import sudo from '@vscode/sudo-prompt'
+
 
 import { store } from '../../store/store'
 import { Platform } from '../platform'

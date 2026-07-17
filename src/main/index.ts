@@ -3,15 +3,7 @@ import os from 'node:os'
 import { join } from 'node:path'
 import Url from 'node:url'
 import { config } from 'dotenv'
-import {
-	BrowserWindow,
-	Menu,
-	Tray,
-	app,
-	ipcMain,
-	nativeImage,
-	shell,
-} from 'electron'
+import { BrowserWindow, Menu, Tray, app, ipcMain, nativeImage, shell } from 'electron'
 import { EventsKeys } from '../shared/constants/eventsKeys.constant'
 import { getPublicFilePath } from './shared/file'
 import { getIconPath } from './shared/getIconPath'
@@ -73,7 +65,7 @@ async function createWindow() {
 		center: isDev === false,
 		show: true,
 
-		alwaysOnTop: isDev,
+		alwaysOnTop: true,
 		movable: true,
 		frame: false,
 		titleBarStyle: 'hidden',
@@ -156,16 +148,13 @@ import './ipc/ui'
 import './ipc/notif'
 import './ipc/dialogs'
 import './ipc/shutdown'
+import './ipc/benchmark'
 import isDev from './shared/isDev'
 
 function createTray() {
 	const appIcon = new Tray(icon)
-	const showIcon = nativeImage.createFromPath(
-		getPublicFilePath('icons/show.png'),
-	)
-	const powerIcon = nativeImage.createFromPath(
-		getPublicFilePath('icons/power.png'),
-	)
+	const showIcon = nativeImage.createFromPath(getPublicFilePath('icons/show.png'))
+	const powerIcon = nativeImage.createFromPath(getPublicFilePath('icons/power.png'))
 
 	const contextMenu = Menu.buildFromTemplate([
 		{

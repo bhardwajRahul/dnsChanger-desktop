@@ -1,88 +1,93 @@
 import { IoClose } from 'react-icons/io5'
 import { VscChromeMinimize } from 'react-icons/vsc'
-import { BsDiscord, BsGithub } from 'react-icons/bs'
-
-import { Button, Navbar, Tooltip } from 'react-daisyui'
+import { BsDiscord, BsGiftFill, BsGithub } from 'react-icons/bs'
+import { Button } from '../button/button'
+import Tooltip from '../tooltip/toolTip'
 import { useEffect, useState } from 'react'
-import { FiWifiOff } from 'react-icons/fi'
+import axios from 'axios'
+import { UrlsConstant } from '../../../shared/constants/urls.constant'
 
 export function NavbarComponent() {
-	const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine)
+	const [ad, setAd] = useState<string | null>(null)
 	useEffect(() => {
-		window.addEventListener('offline', function (e) {
-			setIsOnline(false)
-		})
-		window.addEventListener('online', function (e) {
-			setIsOnline(true)
-		})
+		async function fetchAd() {
+			try {
+				const response = await axios.get(
+					`${UrlsConstant.DONATE_STORE}?t=${Date.now()}`
+				)
+				if (!response.data) {
+					setAd(null)
+				} else {
+					setAd(response.data.url)
+				}
+			} finally {
+			}
+		}
+
+		fetchAd()
 	}, [])
+
 	return (
 		<div>
-			<Navbar className="dark:bg-[#262626] bg-base-200 navbar">
-				<Navbar.Start className={'pl-5'}>
-					<h1 className={'text-2xl mt-1 font-[balooTamma] text-[#75767c]'}>
+			<div className="bg-base-300 navbar">
+				<div className="flex-1 pl-5">
+					<h1 className="text-2xl mt-1 font-[balooTamma] text-[#75767c]">
 						DNS Changer
 					</h1>
-				</Navbar.Start>
-				<Navbar.End>
-					<div className=" rounded-3xl flex  gap-1 flex-row-reverse">
+				</div>
+				<div className="flex-none">
+					<div className="flex flex-row-reverse items-center gap-1">
 						<Button
-							color="ghost"
+							className="rounded-lg btn-ghost hover:bg-error hover:text-gray-100"
 							size="sm"
-							className="hover:bg-red-600 hover:text-gray-100"
-							onClick={() => {
-								window.ipc.close()
-							}}
+							onClick={() => window.ipc.close()}
 						>
 							<IoClose />
 						</Button>
+
 						<Button
-							color="ghost"
+							className="rounded-lg btn-ghost"
 							size="sm"
-							onClick={() => {
-								window.ipc.minimize()
-							}}
+							onClick={() => window.ipc.minimize()}
 						>
 							<VscChromeMinimize />
 						</Button>
 
 						<Button
-							color="ghost"
-							size="sm"
-							className="text-[#616161] hover:text-current"
+							className="text-[#616161] hover:text-current btn-ghost rounded-lg"
+							size="xs"
 							onClick={() =>
 								window.ipc.openBrowser('https://discord.gg/p9TZzEV39e')
 							}
 						>
 							<BsDiscord />
 						</Button>
+
 						<Button
-							color="ghost"
-							size="sm"
-							className="text-[#616161] hover:text-current"
+							className="text-[#616161] hover:text-current btn-ghost rounded-lg"
+							size="xs"
 							onClick={() =>
 								window.ipc.openBrowser(
-									'https://github.com/DnsChanger/dnsChanger-desktop',
+									'https://github.com/DnsChanger/dnsChanger-desktop'
 								)
 							}
 						>
 							<BsGithub />
 						</Button>
-
-						{!isOnline && (
-							<Button color="ghost" size="sm" className="text-[#c54444]">
-								<Tooltip
-									message={'check your network connection status'}
-									position={'bottom'}
-									className="normal-case"
+						{ad ? (
+							<Tooltip content="Donate Us">
+								<Button
+									className="text-[#616161] hover:text-current btn-ghost rounded-lg"
+									size="xs"
+									onClick={() => window.ipc.openBrowser(ad)}
 								>
-									<FiWifiOff />
-								</Tooltip>
-							</Button>
-						)}
+									<BsGiftFill />
+								</Button>
+							</Tooltip>
+						) : null}
 					</div>
-				</Navbar.End>
-			</Navbar>
+				</div>
+			</div>
 		</div>
 	)
 }

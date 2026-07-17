@@ -1,21 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 
-import { setState } from '../../interfaces/react.interface'
+import type { setState } from '../../interfaces/react.interface'
 import { useI18nContext } from '../../../i18n/i18n-react'
-import {
-	Button,
-	Card,
-	CardBody,
-	CardFooter,
-	Dialog,
-	Tabs,
-	TabsHeader,
-	TabsBody,
-	Tab,
-	TabPanel,
-	Alert,
-} from '@material-tailwind/react'
+
 import { appNotif } from '../../notifications/appNotif'
+import Modal from './modal'
+import { TabNavigation } from '../tab/tab-navigation'
+import { TextInput } from '../input/text-input'
+import { Button } from '../button/button'
 
 interface Props {
 	isOpen: boolean
@@ -50,7 +43,7 @@ export function AddDnsModalComponent(props: Props) {
 
 	async function addHandler() {
 		try {
-			let resp
+			let resp: any
 
 			if (type === 'default') {
 				const nameServer1Default = getNameServer('def-serverInput-1')
@@ -100,13 +93,13 @@ export function AddDnsModalComponent(props: Props) {
 					appNotif(
 						'Success',
 						'Default DNS server has been set/updated',
-						'SUCCESS',
+						'SUCCESS'
 					)
 				else {
 					appNotif(
 						'Success',
 						LL.dialogs.added_server({ serverName: serverName }),
-						'SUCCESS',
+						'SUCCESS'
 					)
 				}
 
@@ -190,7 +183,7 @@ export function AddDnsModalComponent(props: Props) {
 		if (!clipText.includes('.')) return
 
 		let servers = clipText.split(',') as string[]
-		if (servers.length == 2) {
+		if (servers.length === 2) {
 			if (ipv4Pattern.test(servers[0]))
 				setDNSAddressToInput('serverInput-1', servers[0])
 			if (ipv4Pattern.test(servers[1]))
@@ -199,7 +192,7 @@ export function AddDnsModalComponent(props: Props) {
 		}
 
 		servers = clipText.split(' ')
-		if (servers.length == 2) {
+		if (servers.length === 2) {
 			if (ipv4Pattern.test(servers[0]))
 				setDNSAddressToInput('serverInput-1', servers[0])
 
@@ -208,166 +201,145 @@ export function AddDnsModalComponent(props: Props) {
 			return
 		}
 
-		if (ipv4Pattern.test(clipText))
-			setDNSAddressToInput('serverInput-1', clipText)
+		if (ipv4Pattern.test(clipText)) setDNSAddressToInput('serverInput-1', clipText)
 	}
 
 	return (
-		<Dialog
-			size="xl"
-			open={props.isOpen}
-			handler={handleOpen}
-			className="bg-transparent shadow-none"
+		<Modal
+			isOpen={props.isOpen}
+			onClose={() => props.setIsOpen(false)}
+			size="md"
+			title="Add Server"
 		>
-			<Card className="mx-auto w-96 dark:bg-[#282828]">
-				<div className="mb-0 p-2 bg-[#f2f2f2] dark:bg-[#262626] dark:text-gray-400 rounded-t-2xl  place-items-center flex flex-row justify-between">
-					<div className="ml-3 font-[balooTamma] text-1xl">Custom Server</div>
-				</div>
+			<div className="flex flex-col gap-2 py-2">
+				<TabNavigation
+					tabs={[
+						{
+							id: 'ipv4',
+							label: 'IPV4',
+						},
+						{
+							id: 'Default',
+							label: 'Default',
+						},
+					]}
+					activeTab={type}
+					tabMode="simple"
+					onTabClick={(val) => setType(val as any)}
+				/>
 
-				<CardBody className="flex flex-col py-2">
-					<Tabs value={type}>
-						<TabsHeader
-							className="bg-gray-300 dark:bg-[#262626]"
-							indicatorProps={{ className: 'bg-[#7487FF]' }}
-						>
-							<Tab
-								value="ipv4"
-								className="dark:text-gray-200 font-[balooTamma]"
-								onClick={() => setType('ipv4')}
-							>
-								IPV4
-							</Tab>
-							<Tab
-								value="default"
-								className="dark:text-gray-200 font-[balooTamma]"
-								onClick={() => setType('default')}
-							>
-								Default
-							</Tab>
-						</TabsHeader>
-						<TabsBody>
-							<TabPanel value="ipv4">
-								<div className={'grid'}>
-									<div>
-										<div className="label">
-											<span className="label-text text-lg font-[balooTamma]">
-												Name
+				{type === 'ipv4' ? (
+					<div className={'px-2 flex flex-col gap-y-2'}>
+						<div>
+							<span className="label-text text-lg font-[balooTamma]">
+								Name
+							</span>
+							<TextInput
+								onChange={(v) => setServerName(v)}
+								value={serverName}
+								placeholder="enter server name"
+							/>
+						</div>
+
+						<div className={'flex flex-col h-full w-full'}>
+							{validationMessage && (
+								<div className="text-[12px] alert alert-error font-[Inter] h-2 text-center flex items-center">
+									{validationMessage}
+								</div>
+							)}
+
+							<div className="flex flex-row items-center justify-between w-full gap-2 mt-2">
+								<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
+									Preferred DNS server:
+									<span className="text-red-500 text-[20px]">*</span>
+								</span>
+								<div>
+									{[1, 2, 3, 4].map((i, index) =>
+										InputDNS(index, `serverInput-1`, onChange)
+									)}
+								</div>
+							</div>
+
+							<div className="flex flex-row items-center justify-between w-full gap-2 mt-2">
+								<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
+									Alternate DNS server:
+								</span>
+								<div>
+									{[1, 2, 3, 4].map((i, index) =>
+										InputDNS(index, 'serverInput-2', onChange)
+									)}
+								</div>
+							</div>
+						</div>
+					</div>
+				) : (
+					<div>
+						<div className={'grid'}>
+							<div>
+								<p className="text-[13px] dark:text-gray-400 font-[Inter] bg-[#f2f2f2] dark:bg-[#262626] p-2 rounded-md">
+									Set the default DNS server for your system. This will
+									be used when no custom server is set. (Optional)
+								</p>
+							</div>
+							<div className={''}>
+								<div className={'gap-1 grid grid-cols-1'} dir={'ltr'}>
+									<div className="flex flex-row items-center justify-between w-full gap-2 mt-2">
+										<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
+											Preferred DNS server:
+											<span className="text-red-500 text-[20px]">
+												*
 											</span>
-										</div>
-										<input
-											type="text"
-											onChange={(e) => setServerName(e.target.value)}
-											value={serverName}
-											defaultValue={serverName}
-											placeholder="e.g. Google DNS"
-											className="w-full h-8 max-w-xs text-gray-600 dark:text-gray-500 font-[Inter] outline outline-1
-                      outline-gray-700/20
-                      dark:outline-none
-                      dark:placeholder-gray-50/20 rounded focus-visible:outline-none focus-visible:ring-2
-                       focus-visible:ring-indigo-500 pl-2 transition duration-200 ease-in-out"
-										/>
-									</div>
-									<section className="mt-2">
-										<div className={'flex flex-col h-full w-full'} dir={'ltr'}>
-											{validationMessage && (
-												<Alert
-													color="red"
-													variant="ghost"
-													className="text-[12px] border-l-4 border-[#c92e2e] dark:text-red-400 font-[Inter] h-2 text-center flex items-center"
-												>
-													{validationMessage}
-												</Alert>
+										</span>
+										<div>
+											{[1, 2, 3, 4].map((i, index) =>
+												InputDNS(
+													index,
+													'def-serverInput-1',
+													onChange
+												)
 											)}
-
-											<div className="flex flex-row w-full gap-2 justify-between items-center mt-2">
-												<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
-													Preferred DNS server:
-													<span className="text-red-500 text-[20px]">*</span>
-												</span>
-												<div>
-													{[1, 2, 3, 4].map((i, index) =>
-														InputDNS(index, 'serverInput-1', onChange),
-													)}
-												</div>
-											</div>
-
-											<div className="flex flex-row w-full gap-2 justify-between items-center mt-2">
-												<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
-													Alternate DNS server:
-												</span>
-												<div>
-													{[1, 2, 3, 4].map((i, index) =>
-														InputDNS(index, 'serverInput-2', onChange),
-													)}
-												</div>
-											</div>
 										</div>
-									</section>
-								</div>
-							</TabPanel>
-							<TabPanel value="default">
-								<div className={'grid'}>
-									<div>
-										<p className="text-[13px] dark:text-gray-400 font-[Inter] bg-[#f2f2f2] dark:bg-[#262626] p-2 rounded-md">
-											Set the default DNS server for your system. This will be
-											used when no custom server is set. (Optional)
-										</p>
 									</div>
-									<div className={''}>
-										<div className={'gap-1 grid grid-cols-1'} dir={'ltr'}>
-											<div className="flex flex-row w-full gap-2 justify-between items-center mt-2">
-												<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
-													Preferred DNS server:
-													<span className="text-red-500 text-[20px]">*</span>
-												</span>
-												<div>
-													{[1, 2, 3, 4].map((i, index) =>
-														InputDNS(index, 'def-serverInput-1', onChange),
-													)}
-												</div>
-											</div>
 
-											<div className="flex flex-row w-full gap-2 justify-between items-center mt-2">
-												<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
-													Alternate DNS server:
-												</span>
-												<div>
-													{[1, 2, 3, 4].map((i, index) =>
-														InputDNS(index, 'def-serverInput-2', onChange),
-													)}
-												</div>
-											</div>
+									<div className="flex flex-row items-center justify-between w-full gap-2 mt-2">
+										<span className="text-gray-700 font-[balooTamma] dark:text-gray-300 text-[12px]">
+											Alternate DNS server:
+										</span>
+										<div>
+											{[1, 2, 3, 4].map((i, index) =>
+												InputDNS(
+													index,
+													'def-serverInput-2',
+													onChange
+												)
+											)}
 										</div>
 									</div>
 								</div>
-							</TabPanel>
-						</TabsBody>
-					</Tabs>
-				</CardBody>
-				<CardFooter className="pt-0 flex flex-row py-2">
+							</div>
+						</div>
+					</div>
+				)}
+
+				<div className="flex flex-row gap-2">
 					<Button
-						variant="text"
-						className="normal-case font-[balooTamma] text-xl"
-						color="red"
-						size="sm"
+						size="md"
+						className="normal-case font-[balooTamma]  rounded-xl"
 						onClick={handleOpen}
 					>
 						Close
 					</Button>
 					<Button
-						variant="gradient"
-						color={'green'}
 						size="md"
-						className={
-							'flex-1  normal-case bg-[#7487FF] font-[balooTamma] text-sm ml-5'
-						}
+						isPrimary
+						className={'flex-1 normal-case  font-[balooTamma] rounded-xl'}
 						onClick={addHandler}
 					>
 						Add
 					</Button>
-				</CardFooter>
-			</Card>
-		</Dialog>
+				</div>
+			</div>
+		</Modal>
 	)
 }
 
@@ -377,7 +349,7 @@ function InputDNS(index: number, className: string, onChange: any) {
 			<input
 				key={index}
 				type="text"
-				className={`${className} w-10 h-10 border-none rounded font-[Inter] outline outline-1 outline-gray-700/20  dark:outline-none dark:text-gray-300/95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 text-center`}
+				className={`${className} input w-10 p-0! h-10 rounded-xl font-[Inter] outline-none! transition-all duration-300 focus:ring-1 focus:ring-primary/20 focus:border-primary text-center`}
 				maxLength={3}
 				onChange={onChange}
 			/>

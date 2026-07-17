@@ -33,6 +33,8 @@ export const ipcPreload = {
 	saveSettings: (settings: SettingInStore) =>
 		ipcRenderer.invoke(EventsKeys.SAVE_SETTINGS, settings),
 	ping: (server: Server) => ipcRenderer.invoke(EventsKeys.PING, server),
+	benchmarkDns: (targetUrl: string, servers: Server[]) =>
+		ipcRenderer.invoke(EventsKeys.BENCHMARK_DNS, { targetUrl, servers }),
 	checkUpdate: () => ipcRenderer.invoke(EventsKeys.CHECK_UPDATE),
 	startUpdate: () => ipcRenderer.invoke(EventsKeys.START_UPDATE),
 	on: (string: string, cb: any) => ipcRenderer.on(string, cb),
